@@ -29,13 +29,16 @@ function AdvancedFieldInput({
   const hint = tip ? `${tip} (${def.path})` : def.path;
 
   if (def.type === "select") {
+    // Prepend an explicit "not set" option so the first real option is never
+    // silently treated as selected. Picking any concrete value persists it;
+    // picking "(chart default)" clears the override.
+    const options = [
+      { value: "", label: "(chart default — not set)" },
+      ...(def.options ?? []),
+    ];
     return (
       <Field label={def.label} hint={hint}>
-        <Select
-          value={String(value ?? def.options?.[0]?.value ?? "")}
-          onChange={onChange}
-          options={def.options ?? []}
-        />
+        <Select value={String(value ?? "")} onChange={onChange} options={options} />
       </Field>
     );
   }
