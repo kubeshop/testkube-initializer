@@ -145,35 +145,46 @@ function buildEnterpriseValues(cfg: TestkubeConfig): Dict {
     },
   };
 
-  return prune(values);
+  const result = prune(values);
+  // When cert-manager is disabled we must keep an explicit (empty) provider:
+  // pruning the empty string would let the chart fall back to its default
+  // "cert-manager", which then fails because no issuerRef is set.
+  if (!endpoints.certManager) {
+    const g = (result.global ?? (result.global = {})) as Dict;
+    g.certificateProvider = "";
+  }
+  return result;
 }
 
 function buildOssValues(cfg: TestkubeConfig): Dict {
   const { core, database, artifacts, nats, endpoints } = cfg;
+  const mongoInCluster = database.type === "mongodb" && !database.external;
+  const pgInCluster = database.type === "postgresql" && !database.external;
+  const minioInCluster = artifacts.type === "minio" && !artifacts.external;
 
   const values: Dict = {
-    global: prune({
-      annotations: {},
-    }),
     mongodb: {
-      enabled: database.type === "mongodb" && !database.external,
-      resources: resourcesToValues(database.resources),
+      enabled: mongoInCluster,
+      ...(mongoInCluster ? { resources: resourcesToValues(database.resources) } : {}),
     },
     postgresql: {
-      enabled: database.type === "postgresql" && !database.external,
-      resources: resourcesToValues(database.resources),
+      enabled: pgInCluster,
+      ...(pgInCluster ? { resources: resourcesToValues(database.resources) } : {}),
     },
-    nats: {
-      enabled: nats.embedded,
-      config: {
-        jetstream: {
-          enabled: nats.jetstreamEnabled,
-          fileStore: {
-            pvc: { enabled: nats.persistent, size: nats.storageSize },
+    // NATS subchart config; the subchart is deployed via the
+    // `testkube-api.nats.enabled` condition below.
+    nats: nats.embedded
+      ? {
+          config: {
+            jetstream: {
+              enabled: nats.jetstreamEnabled,
+              fileStore: {
+                pvc: { enabled: nats.persistent, size: nats.storageSize },
+              },
+            },
           },
-        },
-      },
-    },
+        }
+      : {},
     "testkube-api": {
       enabled: core.api,
       uiIngress: {
@@ -188,20 +199,30 @@ function buildOssValues(cfg: TestkubeConfig): Dict {
           ? `${endpoints.apiSubdomain}.${endpoints.domain}`
           : "",
       },
-      cloud: { key: "" },
+      // MinIO lives under the API subchart in the OSS chart.
+      minio: minioInCluster
+        ? { enabled: true, resources: resourcesToValues(artifacts.resources) }
+        : { enabled: false },
+      // `enabled` here means "the API uses NATS"; `embedded` runs it in-binary.
+      nats: nats.embedded
+        ? { enabled: true }
+        : { enabled: true, embedded: false, uri: nats.uri },
+      mongodb: { enabled: mongoInCluster },
       storage:
         artifacts.type === "minio"
           ? {
               endpoint: artifacts.external ? artifacts.endpoint : "",
               bucket: artifacts.bucket,
               region: artifacts.region,
-              accessKeyId: artifacts.accessKeyId,
-              accessKey: artifacts.secretAccessKey,
+              accessKeyId:
+                artifacts.connectionMode === "manual" ? artifacts.accessKeyId : "",
+              accessKey:
+                artifacts.connectionMode === "manual"
+                  ? artifacts.secretAccessKey
+                  : "",
             }
           : {},
     },
-    minio: { enabled: artifacts.type === "minio" && !artifacts.external },
-    "testkube-dashboard": { enabled: core.dashboard },
     "testkube-operator": { enabled: true },
   };
 
