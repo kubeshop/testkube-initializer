@@ -1,16 +1,24 @@
 import type { ReactNode } from "react";
+import { useSetHelp } from "../lib/helpContext";
 
 export function Field({
   label,
   hint,
+  help,
+  helpPath,
   children,
 }: {
   label: string;
   hint?: string;
+  help?: string;
+  helpPath?: string;
   children: ReactNode;
 }) {
+  const setHelp = useSetHelp();
+  // React's onFocus bubbles, so focusing the inner control triggers this.
+  const show = () => setHelp({ title: label, body: help, path: helpPath });
   return (
-    <label className="block">
+    <label className="block" onFocus={show} onMouseEnter={show}>
       <span className="mb-1.5 block text-sm font-semibold text-white">
         {label}
       </span>
@@ -95,16 +103,25 @@ export function Toggle({
   onChange,
   label,
   description,
+  help,
+  helpPath,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
   description?: string;
+  help?: string;
+  helpPath?: string;
 }) {
+  const setHelp = useSetHelp();
+  const show = () =>
+    setHelp({ title: label, body: help ?? description, path: helpPath });
   return (
     <button
       type="button"
       onClick={() => onChange(!checked)}
+      onFocus={show}
+      onMouseEnter={show}
       className={
         "flex w-full items-center justify-between gap-4 rounded-tk-md border px-4 py-3 text-left transition " +
         (checked
@@ -170,25 +187,37 @@ export function ResourceEditor({
 }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <Field label="Requests CPU">
+      <Field
+        label="Requests CPU"
+        help="Guaranteed CPU reserved for the pod (Kubernetes units, e.g. 150m = 0.15 vCPU)."
+      >
         <TextInput
           value={value.requestsCpu}
           onChange={(e) => onChange({ requestsCpu: e.target.value })}
         />
       </Field>
-      <Field label="Requests Mem">
+      <Field
+        label="Requests Mem"
+        help="Guaranteed memory reserved for the pod (e.g. 100Mi, 1Gi)."
+      >
         <TextInput
           value={value.requestsMemory}
           onChange={(e) => onChange({ requestsMemory: e.target.value })}
         />
       </Field>
-      <Field label="Limits CPU">
+      <Field
+        label="Limits CPU"
+        help="Maximum CPU the pod may use before being throttled (e.g. 500m)."
+      >
         <TextInput
           value={value.limitsCpu}
           onChange={(e) => onChange({ limitsCpu: e.target.value })}
         />
       </Field>
-      <Field label="Limits Mem">
+      <Field
+        label="Limits Mem"
+        help="Maximum memory the pod may use before being OOM-killed (e.g. 512Mi)."
+      >
         <TextInput
           value={value.limitsMemory}
           onChange={(e) => onChange({ limitsMemory: e.target.value })}

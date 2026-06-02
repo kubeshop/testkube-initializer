@@ -1,14 +1,20 @@
 import { Card, Field, ResourceEditor, SegmentedControl, TextInput, Toggle } from "../components/ui";
 import CustomizePanel from "../components/CustomizePanel";
+import { tipFor } from "../lib/tips";
 import type { ConnectionMode, DatabaseType } from "../types/config";
 import type { StepProps } from "./types";
 
 export default function DatabaseStep({ config, update, setAdvanced }: StepProps) {
   const c = config.database;
+  const env = config.initial.envType;
+  const t = (path: string, fallback: string) => tipFor(env, path) ?? fallback;
   return (
     <div className="space-y-5">
       <Card title="Engine">
-        <Field label="Database Type">
+        <Field
+          label="Database Type"
+          help="Backend store for test results and history. MongoDB is the default; PostgreSQL is also supported."
+        >
           <SegmentedControl<DatabaseType>
             value={c.type}
             onChange={(v) => update("database", { type: v })}
@@ -21,6 +27,7 @@ export default function DatabaseStep({ config, update, setAdvanced }: StepProps)
         <Toggle
           label="Is it external?"
           description="Use a managed database instead of an in-cluster instance."
+          help="When enabled, Testkube connects to your managed database via the connection string below instead of deploying one in-cluster."
           checked={c.external}
           onChange={(v) => update("database", { external: v })}
         />
@@ -28,7 +35,10 @@ export default function DatabaseStep({ config, update, setAdvanced }: StepProps)
 
       {c.external && (
         <Card title="Connection">
-          <Field label="Connection String source">
+          <Field
+            label="Connection String source"
+            help="How the database connection string is supplied: auto-generated, entered manually, or pulled from Vault at deploy time."
+          >
             <SegmentedControl<ConnectionMode>
               value={c.connectionMode}
               onChange={(v) => update("database", { connectionMode: v })}
@@ -40,7 +50,14 @@ export default function DatabaseStep({ config, update, setAdvanced }: StepProps)
             />
           </Field>
           {c.connectionMode === "manual" && (
-            <Field label="Connection String">
+            <Field
+              label="Connection String"
+              help={t(
+                "global.mongo.dsn",
+                "Full database connection string (DSN) Testkube uses to reach your external database."
+              )}
+              helpPath={c.type === "mongodb" ? "global.mongo.dsn" : undefined}
+            >
               <TextInput
                 placeholder={
                   c.type === "mongodb"
@@ -53,7 +70,11 @@ export default function DatabaseStep({ config, update, setAdvanced }: StepProps)
             </Field>
           )}
           {c.connectionMode === "vault" && (
-            <Field label="Vault path" hint="Path/secret reference resolved at deploy time.">
+            <Field
+              label="Vault path"
+              hint="Path/secret reference resolved at deploy time."
+              help="Vault secret path resolved at deploy time to inject the database connection string."
+            >
               <TextInput
                 placeholder="secret/data/testkube/db"
                 value={c.vaultPath}

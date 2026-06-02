@@ -20,6 +20,8 @@ function AdvancedFieldInput({
       <Toggle
         label={def.label}
         description={tip}
+        help={tip}
+        helpPath={def.path}
         checked={Boolean(value)}
         onChange={onChange}
       />
@@ -37,14 +39,14 @@ function AdvancedFieldInput({
       ...(def.options ?? []),
     ];
     return (
-      <Field label={def.label} hint={hint}>
+      <Field label={def.label} hint={hint} help={tip} helpPath={def.path}>
         <Select value={String(value ?? "")} onChange={onChange} options={options} />
       </Field>
     );
   }
 
   return (
-    <Field label={def.label} hint={hint}>
+    <Field label={def.label} hint={hint} help={tip} helpPath={def.path}>
       <TextInput
         type={def.type === "number" ? "number" : "text"}
         placeholder={def.placeholder}

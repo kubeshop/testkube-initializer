@@ -1,16 +1,27 @@
 import { Card, Field, TextInput, Toggle } from "../components/ui";
 import CustomizePanel from "../components/CustomizePanel";
+import { tipFor } from "../lib/tips";
 import { isEnterprise } from "../types/config";
 import type { StepProps } from "./types";
 
 export default function EndpointsStep({ config, update, setAdvanced }: StepProps) {
   const c = config.endpoints;
   const enterprise = isEnterprise(config.initial.envType);
+  const env = config.initial.envType;
+  const t = (path: string, fallback: string) => tipFor(env, path) ?? fallback;
 
   return (
     <div className="space-y-5">
       <Card title="Domain">
-        <Field label="Base domain" hint="Endpoints are exposed as <prefix>.<domain>.">
+        <Field
+          label="Base domain"
+          hint="Endpoints are exposed as <prefix>.<domain>."
+          help={t(
+            "global.domain",
+            "Base domain under which all Testkube endpoints are exposed."
+          )}
+          helpPath="global.domain"
+        >
           <TextInput
             placeholder="testkube.example.com"
             value={c.domain}
@@ -21,13 +32,21 @@ export default function EndpointsStep({ config, update, setAdvanced }: StepProps
 
       <Card title="Prefixes">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="UI (dashboard)">
+          <Field
+            label="UI (dashboard)"
+            help={t("global.uiSubdomain", "Subdomain prepended to the domain for the dashboard UI.")}
+            helpPath="global.uiSubdomain"
+          >
             <TextInput
               value={c.uiSubdomain}
               onChange={(e) => update("endpoints", { uiSubdomain: e.target.value })}
             />
           </Field>
-          <Field label="REST API">
+          <Field
+            label="REST API"
+            help={t("global.restApiSubdomain", "Subdomain prepended to the domain for the REST API.")}
+            helpPath="global.restApiSubdomain"
+          >
             <TextInput
               value={c.apiSubdomain}
               onChange={(e) => update("endpoints", { apiSubdomain: e.target.value })}
@@ -35,13 +54,21 @@ export default function EndpointsStep({ config, update, setAdvanced }: StepProps
           </Field>
           {enterprise && (
             <>
-              <Field label="gRPC agent">
+              <Field
+                label="gRPC agent"
+                help={t("global.grpcApiSubdomain", "Subdomain for the gRPC API used by agents.")}
+                helpPath="global.grpcApiSubdomain"
+              >
                 <TextInput
                   value={c.agentSubdomain}
                   onChange={(e) => update("endpoints", { agentSubdomain: e.target.value })}
                 />
               </Field>
-              <Field label="Websockets">
+              <Field
+                label="Websockets"
+                help={t("global.websocketApiSubdomain", "Subdomain for the Websocket API.")}
+                helpPath="global.websocketApiSubdomain"
+              >
                 <TextInput
                   value={c.websocketsSubdomain}
                   onChange={(e) =>
@@ -49,7 +76,11 @@ export default function EndpointsStep({ config, update, setAdvanced }: StepProps
                   }
                 />
               </Field>
-              <Field label="Storage">
+              <Field
+                label="Storage"
+                help={t("global.storageApiSubdomain", "Subdomain for the storage API.")}
+                helpPath="global.storageApiSubdomain"
+              >
                 <TextInput
                   value={c.storageSubdomain}
                   onChange={(e) =>
@@ -57,7 +88,11 @@ export default function EndpointsStep({ config, update, setAdvanced }: StepProps
                   }
                 />
               </Field>
-              <Field label="AI">
+              <Field
+                label="AI"
+                help={t("global.aiApiSubdomain", "Subdomain for the AI API.")}
+                helpPath="global.aiApiSubdomain"
+              >
                 <TextInput
                   value={c.aiSubdomain}
                   onChange={(e) => update("endpoints", { aiSubdomain: e.target.value })}
@@ -72,17 +107,28 @@ export default function EndpointsStep({ config, update, setAdvanced }: StepProps
         <Toggle
           label="Use Kubernetes Service for component integrations?"
           description="Wire components via in-cluster Services instead of public Ingress."
+          help="When enabled, components talk to each other through in-cluster Kubernetes Services instead of going through public Ingress endpoints."
           checked={c.useKubernetesService}
           onChange={(v) => update("endpoints", { useKubernetesService: v })}
         />
         <Toggle
           label="Using cert-manager?"
           description="Automate TLS certificate issuance."
+          help={t(
+            "global.certificateProvider",
+            "Use cert-manager to automatically issue and renew TLS certificates for the endpoints."
+          )}
+          helpPath="global.certificateProvider"
           checked={c.certManager}
           onChange={(v) => update("endpoints", { certManager: v })}
         />
         {c.certManager && (
-          <Field label="Issuer reference" hint="cert-manager ClusterIssuer / Issuer name.">
+          <Field
+            label="Issuer reference"
+            hint="cert-manager ClusterIssuer / Issuer name."
+            help={t("global.certManager.issuerRef", "Reference to the cert-manager Issuer/ClusterIssuer used to sign certificates.")}
+            helpPath="global.certManager.issuerRef"
+          >
             <TextInput
               value={c.certManagerIssuerRef}
               onChange={(e) =>

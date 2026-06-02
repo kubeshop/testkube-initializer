@@ -10,11 +10,16 @@ export default function NatsStep({ config, update, setAdvanced }: StepProps) {
         <Toggle
           label="Deploy embedded NATS"
           description="Disable to connect to an existing external NATS cluster."
+          help="NATS is the messaging backbone between Testkube components. Keep it embedded to deploy NATS in-cluster, or disable to reuse an external NATS."
           checked={c.embedded}
           onChange={(v) => update("nats", { embedded: v })}
         />
         {!c.embedded && (
-          <Field label="External NATS URI">
+          <Field
+            label="External NATS URI"
+            help="Connection URI of your external NATS cluster (e.g. nats://host:4222)."
+            helpPath="global.nats.uri"
+          >
             <TextInput
               placeholder="nats://nats.example.com:4222"
               value={c.uri}
@@ -29,16 +34,21 @@ export default function NatsStep({ config, update, setAdvanced }: StepProps) {
           <Toggle
             label="Enable JetStream"
             description="Persistent streaming layer for events."
+            help="JetStream is NATS' persistence layer; required for durable event delivery between components."
             checked={c.jetstreamEnabled}
             onChange={(v) => update("nats", { jetstreamEnabled: v })}
           />
           <Toggle
             label="Persistent storage (PVC)"
+            help="Back JetStream with a PersistentVolumeClaim so messages survive pod restarts."
             checked={c.persistent}
             onChange={(v) => update("nats", { persistent: v })}
           />
           {c.persistent && (
-            <Field label="Storage size">
+            <Field
+              label="Storage size"
+              help="Size of the PersistentVolumeClaim backing JetStream (e.g. 10Gi)."
+            >
               <TextInput
                 value={c.storageSize}
                 onChange={(e) => update("nats", { storageSize: e.target.value })}

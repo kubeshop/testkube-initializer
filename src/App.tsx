@@ -1,8 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Logo from "./components/Logo";
 import { APP_VERSION, defaultConfig } from "./lib/defaults";
 import { STEPS } from "./lib/steps";
 import { downloadYaml } from "./lib/yaml";
+import { HelpContext, type FieldHelp } from "./lib/helpContext";
 import type { AdvancedScalar, TestkubeConfig } from "./types/config";
 import InitialConfigStep from "./steps/InitialConfigStep";
 import CoreComponentsStep from "./steps/CoreComponentsStep";
@@ -28,6 +29,10 @@ const STEP_COMPONENTS: ((p: StepProps) => JSX.Element)[] = [
 export default function App() {
   const [config, setConfig] = useState<TestkubeConfig>(defaultConfig);
   const [active, setActive] = useState(0);
+  const [fieldHelp, setFieldHelp] = useState<FieldHelp | null>(null);
+
+  // Reset the contextual help whenever the wizard step changes.
+  useEffect(() => setFieldHelp(null), [active]);
 
   const update = useCallback(
     <K extends keyof TestkubeConfig>(key: K, patch: Partial<TestkubeConfig[K]>) => {
@@ -48,6 +53,7 @@ export default function App() {
   const isLast = active === STEPS.length - 1;
 
   return (
+    <HelpContext.Provider value={setFieldHelp}>
     <div className="flex min-h-screen flex-col bg-tk-purple-900 text-white">
       {/* Header */}
       <header className="flex items-center justify-between border-b border-tk-purple-600/50 bg-black/40 px-6 py-4 backdrop-blur">
@@ -150,10 +156,28 @@ export default function App() {
         </section>
 
         {/* Help panel */}
-        <aside className="rounded-tk border border-tk-purple-600/60 bg-tk-purple-800/40 p-4">
+        <aside className="self-start rounded-tk border border-tk-purple-600/60 bg-tk-purple-800/40 p-4 lg:sticky lg:top-5">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-tk-purple-200">
             Helpful links & explanations
           </h2>
+
+          {fieldHelp && (
+            <div className="mb-4 rounded-tk-md border border-tk-purple-400/50 bg-tk-purple-500/10 p-3">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-tk-pink">
+                Field
+              </p>
+              <h3 className="text-sm font-bold text-white">{fieldHelp.title}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-tk-purple-100/90">
+                {fieldHelp.body || "No additional guidance for this field."}
+              </p>
+              {fieldHelp.path && (
+                <code className="mt-2 block break-all text-xs text-tk-purple-200/80">
+                  {fieldHelp.path}
+                </code>
+              )}
+            </div>
+          )}
+
           <div className="space-y-3 text-sm leading-relaxed text-tk-purple-100/90">
             {meta.help.map((h, i) => (
               <p key={i}>{h}</p>
@@ -190,5 +214,6 @@ export default function App() {
         </div>
       </footer>
     </div>
+    </HelpContext.Provider>
   );
 }

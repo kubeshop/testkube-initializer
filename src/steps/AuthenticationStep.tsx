@@ -1,11 +1,13 @@
 import { Card, Field, Select, TextInput, Toggle } from "../components/ui";
 import CustomizePanel from "../components/CustomizePanel";
+import { tipFor } from "../lib/tips";
 import { isEnterprise, type AuthConnectorType } from "../types/config";
 import type { StepProps } from "./types";
 
 export default function AuthenticationStep({ config, update, setAdvanced }: StepProps) {
   const c = config.auth;
   const enterprise = isEnterprise(config.initial.envType);
+  const env = config.initial.envType;
 
   if (!enterprise) {
     return (
@@ -25,10 +27,17 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
         <Toggle
           label="Enable Dex"
           description="Identity broker placed in front of your IdP."
+          help={tipFor(env, "dex.enabled") ?? "Deploy Dex as the identity broker that federates your IdP (OIDC, Google, GitHub, ...)."}
+          helpPath="dex.enabled"
           checked={c.dexEnabled}
           onChange={(v) => update("auth", { dexEnabled: v })}
         />
-        <Field label="Issuer URL" hint="Public OIDC issuer URL exposed by Dex.">
+        <Field
+          label="Issuer URL"
+          hint="Public OIDC issuer URL exposed by Dex."
+          help={tipFor(env, "global.dex.issuer") ?? "Public OIDC issuer URL exposed by Dex; must be reachable by clients and the API."}
+          helpPath="global.dex.issuer"
+        >
           <TextInput
             placeholder="https://dashboard.testkube.example.com/idp"
             value={c.issuerUrl}
@@ -39,7 +48,10 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
 
       {c.dexEnabled && (
         <Card title="Connector">
-          <Field label="Connector type">
+          <Field
+            label="Connector type"
+            help="Upstream identity provider Dex federates to (generic OIDC, Google, GitHub, GitLab or LDAP)."
+          >
             <Select
               value={c.connector}
               onChange={(v) => update("auth", { connector: v as AuthConnectorType })}
@@ -53,13 +65,19 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Client ID">
+            <Field
+              label="Client ID"
+              help="OAuth/OIDC client ID issued by your identity provider for Testkube."
+            >
               <TextInput
                 value={c.clientId}
                 onChange={(e) => update("auth", { clientId: e.target.value })}
               />
             </Field>
-            <Field label="Client Secret">
+            <Field
+              label="Client Secret"
+              help="OAuth/OIDC client secret paired with the client ID."
+            >
               <TextInput
                 type="password"
                 value={c.clientSecret}
@@ -70,6 +88,7 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
           <Field
             label="Admin emails"
             hint="Comma-separated list granted admin access."
+            help="Comma-separated emails that are granted administrator access on first login."
           >
             <TextInput
               placeholder="admin@acme.com, ops@acme.com"

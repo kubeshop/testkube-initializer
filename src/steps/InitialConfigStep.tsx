@@ -1,10 +1,13 @@
 import { Card, Field, SegmentedControl, TextInput } from "../components/ui";
 import CustomizePanel from "../components/CustomizePanel";
+import { tipFor } from "../lib/tips";
+import { useSetHelp } from "../lib/helpContext";
 import type { EnvType, KubernetesType, LicenseMode } from "../types/config";
 import { isEnterprise } from "../types/config";
 import type { StepProps } from "./types";
 
 export default function InitialConfigStep({ config, update, setAdvanced }: StepProps) {
+  const setHelp = useSetHelp();
   const c = config.initial;
   const enterprise = isEnterprise(c.envType);
 
@@ -28,14 +31,20 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
     <div className="space-y-5">
       <Card title="Identity">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Company Name">
+          <Field
+            label="Company Name"
+            help="Logical name for your installation. Used in the generated file header for reference."
+          >
             <TextInput
               placeholder="Acme Inc."
               value={c.companyName}
               onChange={(e) => update("initial", { companyName: e.target.value })}
             />
           </Field>
-          <Field label="Admin Email">
+          <Field
+            label="Admin Email"
+            help="Primary administrator contact for this deployment."
+          >
             <TextInput
               type="email"
               placeholder="admin@acme.com"
@@ -47,7 +56,10 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
       </Card>
 
       <Card title="Environment">
-        <Field label="Kubernetes type">
+        <Field
+          label="Kubernetes type"
+          help="Where the cluster runs: on-prem/self-managed or a cloud provider. Affects recommended defaults."
+        >
           <SegmentedControl<KubernetesType>
             value={c.kubernetesType}
             onChange={(v) => update("initial", { kubernetesType: v })}
@@ -57,7 +69,11 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
             ]}
           />
         </Field>
-        <Field label="Env type" hint="Drives whether OSS or Enterprise values are generated.">
+        <Field
+          label="Env type"
+          hint="Drives whether OSS or Enterprise values are generated."
+          help="OSS uses the open-source chart (testkube/testkube). Enterprise Prod/Lab use the control-plane chart (testkube/testkube-enterprise) with licensing and SSO."
+        >
           <SegmentedControl<EnvType>
             value={c.envType}
             onChange={(v) => update("initial", { envType: v })}
@@ -72,7 +88,10 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
 
       {enterprise && (
         <Card title="License">
-          <Field label="License activation">
+          <Field
+            label="License activation"
+            help={tipFor(c.envType, "global.enterpriseOfflineAccess") ?? "Online validates the key against the licensing service; Offline mounts the license from a Kubernetes secret (air-gapped)."}
+          >
             <SegmentedControl<LicenseMode>
               value={c.licenseMode}
               onChange={(v) => update("initial", { licenseMode: v })}
@@ -83,7 +102,12 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
             />
           </Field>
           {c.licenseMode === "online" ? (
-            <Field label="License key" hint="Stored in global.enterpriseLicenseKey.">
+            <Field
+              label="License key"
+              hint="Stored in global.enterpriseLicenseKey."
+              help={tipFor(c.envType, "global.enterpriseLicenseKey") ?? "Enterprise license key validated online against the licensing service."}
+              helpPath="global.enterpriseLicenseKey"
+            >
               <TextInput
                 placeholder="XXXX-XXXX-XXXX-XXXX"
                 value={c.licenseKey}
@@ -94,6 +118,8 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
             <Field
               label="License secret reference"
               hint="Name of the secret with LICENSE_KEY and license.lic keys."
+              help={tipFor(c.envType, "global.enterpriseLicenseSecretRef") ?? "Secret holding the offline license (keys LICENSE_KEY and license.lic)."}
+              helpPath="global.enterpriseLicenseSecretRef"
             >
               <TextInput
                 placeholder="testkube-enterprise-license"
@@ -108,7 +134,21 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
       )}
 
       <Card title="Organizations / Environments">
-        <div className="space-y-2">
+        <div
+          className="space-y-2"
+          onFocus={() =>
+            setHelp({
+              title: "Organizations / Environments",
+              body: "Initial organizations and their environments to bootstrap in the control plane. Each row is one organization with an environment (e.g. default / production).",
+            })
+          }
+          onMouseEnter={() =>
+            setHelp({
+              title: "Organizations / Environments",
+              body: "Initial organizations and their environments to bootstrap in the control plane. Each row is one organization with an environment (e.g. default / production).",
+            })
+          }
+        >
           <div className="grid grid-cols-[1fr_1fr_auto] gap-2 px-1 text-xs font-semibold uppercase text-tk-purple-200/70">
             <span>Organization</span>
             <span>Environment</span>
