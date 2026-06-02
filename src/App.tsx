@@ -4,6 +4,7 @@ import { APP_VERSION, defaultConfig } from "./lib/defaults";
 import { STEPS } from "./lib/steps";
 import { downloadYaml } from "./lib/yaml";
 import { HelpContext, type FieldHelp } from "./lib/helpContext";
+import PreviewDrawer from "./components/PreviewDrawer";
 import type { AdvancedScalar, TestkubeConfig } from "./types/config";
 import InitialConfigStep from "./steps/InitialConfigStep";
 import CoreComponentsStep from "./steps/CoreComponentsStep";
@@ -30,6 +31,7 @@ export default function App() {
   const [config, setConfig] = useState<TestkubeConfig>(defaultConfig);
   const [active, setActive] = useState(0);
   const [fieldHelp, setFieldHelp] = useState<FieldHelp | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(true);
 
   // Reset the contextual help whenever the wizard step changes.
   useEffect(() => setFieldHelp(null), [active]);
@@ -201,18 +203,25 @@ export default function App() {
         </aside>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-tk-purple-600/50 bg-black/40 px-6 py-4">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => downloadYaml(config)}
-            className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95"
-          >
-            Export
-          </button>
-        </div>
-      </footer>
+      {/* Sticky bottom: live YAML preview + actions */}
+      <div className="sticky bottom-0 z-30">
+        <PreviewDrawer
+          config={config}
+          open={previewOpen}
+          onToggle={() => setPreviewOpen((o) => !o)}
+        />
+        <footer className="border-t border-tk-purple-600/50 bg-black/40 px-6 py-4">
+          <div className="mx-auto flex max-w-[1200px] items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => downloadYaml(config)}
+              className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95"
+            >
+              Export
+            </button>
+          </div>
+        </footer>
+      </div>
     </div>
     </HelpContext.Provider>
   );
