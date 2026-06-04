@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { downloadYaml, generateYaml } from "../lib/yaml";
+import { validate } from "../lib/validation";
 import type { TestkubeConfig } from "../types/config";
 
 // Always-visible live preview of the generated values.yaml, pinned to the
@@ -16,6 +17,7 @@ export default function PreviewDrawer({
   const [copied, setCopied] = useState(false);
   const yaml = useMemo(() => generateYaml(config), [config]);
   const lines = yaml.split("\n").length;
+  const errorCount = useMemo(() => validate(config).errors.length, [config]);
 
   const copy = async () => {
     await navigator.clipboard.writeText(yaml);
@@ -36,6 +38,11 @@ export default function PreviewDrawer({
           <span className="rounded-full bg-tk-purple-600/60 px-2 py-0.5 text-xs font-semibold text-tk-purple-100">
             {lines} lines
           </span>
+          {errorCount > 0 && (
+            <span className="rounded-full bg-tk-error px-2 py-0.5 text-xs font-bold text-white">
+              {errorCount} error{errorCount > 1 ? "s" : ""}
+            </span>
+          )}
         </button>
         <div className="flex items-center gap-2">
           <button
@@ -48,7 +55,9 @@ export default function PreviewDrawer({
           <button
             type="button"
             onClick={() => downloadYaml(config)}
-            className="rounded-full bg-tk-yellow px-3 py-1 text-xs font-bold text-black transition hover:brightness-95"
+            disabled={errorCount > 0}
+            title={errorCount > 0 ? `Resolve ${errorCount} error(s) to download` : undefined}
+            className="rounded-full bg-tk-yellow px-3 py-1 text-xs font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Download
           </button>

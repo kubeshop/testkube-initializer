@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Logo from "./components/Logo";
 import { APP_VERSION, defaultConfig } from "./lib/defaults";
 import { STEPS } from "./lib/steps";
 import { downloadYaml } from "./lib/yaml";
 import { HelpContext, type FieldHelp } from "./lib/helpContext";
 import PreviewDrawer from "./components/PreviewDrawer";
+import { validate } from "./lib/validation";
 import type { AdvancedScalar, TestkubeConfig } from "./types/config";
 import InitialConfigStep from "./steps/InitialConfigStep";
 import CoreComponentsStep from "./steps/CoreComponentsStep";
@@ -53,6 +54,14 @@ export default function App() {
   const meta = STEPS[active];
   const StepComponent = STEP_COMPONENTS[active];
   const isLast = active === STEPS.length - 1;
+
+  const validation = useMemo(() => validate(config), [config]);
+  const hasErrors = validation.errors.length > 0;
+  const errorsByStep = useMemo(() => {
+    const m: Record<number, number> = {};
+    for (const e of validation.errors) m[e.step] = (m[e.step] ?? 0) + 1;
+    return m;
+  }, [validation]);
 
   return (
     <HelpContext.Provider value={setFieldHelp}>
@@ -105,7 +114,15 @@ export default function App() {
                     >
                       {i + 1}
                     </span>
-                    {s.title}
+                    <span className="flex-1">{s.title}</span>
+                    {errorsByStep[i] > 0 && (
+                      <span
+                        title={`${errorsByStep[i]} error(s)`}
+                        className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-tk-error px-1 text-xs font-bold text-white"
+                      >
+                        {errorsByStep[i]}
+                      </span>
+                    )}
                   </button>
                 </li>
               );
@@ -141,7 +158,9 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => downloadYaml(config)}
-                className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95"
+                disabled={hasErrors}
+                title={hasErrors ? `Resolve ${validation.errors.length} error(s) to export` : undefined}
+                className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Export values.yaml
               </button>
@@ -212,10 +231,18 @@ export default function App() {
         />
         <footer className="border-t border-tk-purple-600/50 bg-black/40 px-6 py-4">
           <div className="mx-auto flex max-w-[1200px] items-center justify-end gap-3">
+            {hasErrors && (
+              <span className="text-xs font-semibold text-tk-error">
+                {validation.errors.length} error
+                {validation.errors.length > 1 ? "s" : ""} to resolve before export
+              </span>
+            )}
             <button
               type="button"
               onClick={() => downloadYaml(config)}
-              className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95"
+              disabled={hasErrors}
+              title={hasErrors ? `Resolve ${validation.errors.length} error(s) to export` : undefined}
+              className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Export
             </button>
