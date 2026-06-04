@@ -90,6 +90,8 @@ function connectionComment(mode: ConnectionMode): string {
       return "Connection provided manually below.";
     case "vault":
       return "Connection sourced from Vault (see annotations / secretRef).";
+    case "secret":
+      return "Credentials referenced from an existing Kubernetes Secret.";
   }
 }
 
@@ -118,16 +120,25 @@ function buildEnterpriseValues(cfg: TestkubeConfig): Dict {
     dex: { issuer: auth.issuerUrl },
     mongo:
       database.type === "mongodb" && database.external
-        ? { dsn: database.connectionString }
+        ? database.connectionMode === "secret"
+          ? { dsnSecretRef: database.secretName }
+          : { dsn: database.connectionString }
         : {},
     nats: nats.embedded ? {} : { uri: nats.uri },
     storage: {
       endpoint:
         artifacts.external && artifacts.endpoint ? artifacts.endpoint : "",
       region: artifacts.region,
-      accessKeyId: artifacts.accessKeyId,
-      secretAccessKey: artifacts.secretAccessKey,
       outputsBucket: artifacts.bucket,
+      ...(artifacts.connectionMode === "manual"
+        ? {
+            accessKeyId: artifacts.accessKeyId,
+            secretAccessKey: artifacts.secretAccessKey,
+          }
+        : {}),
+      ...(artifacts.connectionMode === "secret"
+        ? { credsSecretRef: artifacts.secretName }
+        : {}),
     },
   };
 
@@ -217,20 +228,25 @@ function buildOssValues(cfg: TestkubeConfig): Dict {
         ? { enabled: true }
         : { enabled: true, embedded: false, uri: nats.uri },
       mongodb: { enabled: mongoInCluster },
-      storage:
-        artifacts.type === "minio"
+      storage: {
+        endpoint: artifacts.external ? artifacts.endpoint : "",
+        bucket: artifacts.bucket,
+        region: artifacts.region,
+        ...(artifacts.connectionMode === "manual"
           ? {
-              endpoint: artifacts.external ? artifacts.endpoint : "",
-              bucket: artifacts.bucket,
-              region: artifacts.region,
-              accessKeyId:
-                artifacts.connectionMode === "manual" ? artifacts.accessKeyId : "",
-              accessKey:
-                artifacts.connectionMode === "manual"
-                  ? artifacts.secretAccessKey
-                  : "",
+              accessKeyId: artifacts.accessKeyId,
+              accessKey: artifacts.secretAccessKey,
             }
-          : {},
+          : {}),
+        ...(artifacts.connectionMode === "secret"
+          ? {
+              secretNameAccessKeyId: artifacts.secretName,
+              secretKeyAccessKeyId: artifacts.accessKeyIdKey,
+              secretNameSecretAccessKey: artifacts.secretName,
+              secretKeySecretAccessKey: artifacts.secretAccessKeyKey,
+            }
+          : {}),
+      },
     },
     "testkube-operator": { enabled: true },
   };
@@ -272,14 +288,125 @@ export function generateYaml(cfg: TestkubeConfig): string {
 }
 
 export function downloadYaml(cfg: TestkubeConfig): void {
-  const yaml = generateYaml(cfg);
-  const blob = new Blob([yaml], { type: "text/yaml;charset=utf-8" });
+  download("values.yaml", generateYaml(cfg));
+}
+
+function download(filename: string, contents: string): void {
+  const blob = new Blob([contents], { type: "text/yaml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "values.yaml";
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// ---------------------------------------------------------------------------
+// Secrets handling
+// ---------------------------------------------------------------------------
+
+export interface PlaintextSecret {
+  label: string;
+  hint: string;
+}
+
+// Inline (plaintext) secrets that will be written into values.yaml as-is.
+// Used to warn the user and nudge them toward "Existing Secret" mode.
+export function detectPlaintextSecrets(cfg: TestkubeConfig): PlaintextSecret[] {
+  const enterprise = isEnterprise(cfg.initial.envType);
+  const out: PlaintextSecret[] = [];
+
+  if (enterprise && cfg.initial.licenseMode === "online" && cfg.initial.licenseKey) {
+    out.push({
+      label: "Enterprise license key",
+      hint: "global.enterpriseLicenseKey — consider Offline mode with a secret ref.",
+    });
+  }
+  if (cfg.artifacts.connectionMode === "manual" && (cfg.artifacts.accessKeyId || cfg.artifacts.secretAccessKey)) {
+    out.push({
+      label: "Object storage access key / secret",
+      hint: "Switch the Artifacts credentials source to \"Existing Secret\".",
+    });
+  }
+  if (cfg.database.external && cfg.database.connectionMode === "manual" && cfg.database.connectionString) {
+    out.push({
+      label: "Database connection string",
+      hint: "Switch the Database connection source to \"Existing Secret\".",
+    });
+  }
+  if (enterprise && cfg.auth.dexEnabled && cfg.auth.clientSecret) {
+    out.push({
+      label: "OIDC/Dex client secret",
+      hint: "auth client secret is written in plaintext.",
+    });
+  }
+  return out;
+}
+
+interface SecretSkeleton {
+  name: string;
+  keys: string[];
+}
+
+// Kubernetes Secrets referenced via "Existing Secret" mode, that the user must
+// create before installing. We emit a skeleton manifest with placeholders.
+export function referencedSecrets(cfg: TestkubeConfig): SecretSkeleton[] {
+  const enterprise = isEnterprise(cfg.initial.envType);
+  const out: SecretSkeleton[] = [];
+
+  if (cfg.artifacts.connectionMode === "secret" && cfg.artifacts.secretName) {
+    out.push(
+      enterprise
+        ? { name: cfg.artifacts.secretName, keys: ["root-user", "root-password", "token"] }
+        : {
+            name: cfg.artifacts.secretName,
+            keys: [cfg.artifacts.accessKeyIdKey, cfg.artifacts.secretAccessKeyKey],
+          }
+    );
+  }
+  if (
+    enterprise &&
+    cfg.database.external &&
+    cfg.database.connectionMode === "secret" &&
+    cfg.database.secretName
+  ) {
+    out.push({ name: cfg.database.secretName, keys: ["MONGO_DSN"] });
+  }
+  return out;
+}
+
+export function generateSecretsYaml(cfg: TestkubeConfig): string {
+  const secrets = referencedSecrets(cfg);
+  if (secrets.length === 0) {
+    return "# No 'Existing Secret' references configured.\n# Use the \"Existing Secret\" credential source in Artifacts/Database to populate this file.\n";
+  }
+  const header = [
+    "# ---------------------------------------------------------------------------",
+    "# Kubernetes Secrets referenced by your values.yaml.",
+    "# Replace the REPLACE_ME placeholders and apply BEFORE installing the chart:",
+    "#   kubectl apply -n <namespace> -f secrets.yaml",
+    "# ---------------------------------------------------------------------------",
+    "",
+  ].join("\n");
+
+  const docs = secrets.map((s) => {
+    const data = s.keys.map((k) => `  ${k}: "REPLACE_ME"`).join("\n");
+    return [
+      "apiVersion: v1",
+      "kind: Secret",
+      "metadata:",
+      `  name: ${s.name}`,
+      "type: Opaque",
+      "stringData:",
+      data,
+    ].join("\n");
+  });
+
+  return `${header}${docs.join("\n---\n")}\n`;
+}
+
+export function downloadSecrets(cfg: TestkubeConfig): void {
+  download("secrets.yaml", generateSecretsYaml(cfg));
 }

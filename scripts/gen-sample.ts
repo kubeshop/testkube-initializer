@@ -3,7 +3,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { generateYaml } from "../src/lib/yaml";
+import { generateSecretsYaml, generateYaml } from "../src/lib/yaml";
 import { defaultConfig } from "../src/lib/defaults";
 import type { TestkubeConfig } from "../src/types/config";
 
@@ -62,7 +62,41 @@ const ossHa: TestkubeConfig = {
   },
 };
 
+// OSS with external S3 referenced via an existing Secret (no plaintext creds).
+const ossSecret: TestkubeConfig = {
+  ...oss,
+  artifacts: {
+    ...oss.artifacts,
+    type: "s3",
+    external: true,
+    endpoint: "s3.amazonaws.com",
+    connectionMode: "secret",
+    secretName: "testkube-storage-credentials",
+  },
+};
+
+// Enterprise with storage creds + mongo DSN referenced via existing Secrets.
+const entSecret: TestkubeConfig = {
+  ...enterprise,
+  database: {
+    ...enterprise.database,
+    external: true,
+    connectionMode: "secret",
+    secretName: "testkube-mongo-dsn",
+  },
+  artifacts: {
+    ...enterprise.artifacts,
+    external: true,
+    endpoint: "s3.amazonaws.com",
+    connectionMode: "secret",
+    secretName: "testkube-storage-credentials",
+  },
+};
+
 writeFileSync(resolve(outDir, "oss-kind.yaml"), generateYaml(oss));
 writeFileSync(resolve(outDir, "oss-ha.yaml"), generateYaml(ossHa));
+writeFileSync(resolve(outDir, "oss-secret.yaml"), generateYaml(ossSecret));
 writeFileSync(resolve(outDir, "enterprise.yaml"), generateYaml(enterprise));
-console.log("Wrote samples/oss-kind.yaml, samples/oss-ha.yaml and samples/enterprise.yaml");
+writeFileSync(resolve(outDir, "ent-secret.yaml"), generateYaml(entSecret));
+writeFileSync(resolve(outDir, "ent-secrets-template.yaml"), generateSecretsYaml(entSecret));
+console.log("Wrote samples/* (incl. secret variants)");

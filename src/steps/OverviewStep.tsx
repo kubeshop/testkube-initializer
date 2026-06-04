@@ -1,7 +1,13 @@
 import { useMemo, useState } from "react";
 import { Card } from "../components/ui";
 import { isEnterprise } from "../types/config";
-import { downloadYaml, generateYaml } from "../lib/yaml";
+import {
+  detectPlaintextSecrets,
+  downloadSecrets,
+  downloadYaml,
+  generateYaml,
+  referencedSecrets,
+} from "../lib/yaml";
 import type { StepProps } from "./types";
 
 function Summary({ label, value }: { label: string; value: string }) {
@@ -17,6 +23,8 @@ export default function OverviewStep({ config }: StepProps) {
   const [copied, setCopied] = useState(false);
   const yaml = useMemo(() => generateYaml(config), [config]);
   const enterprise = isEnterprise(config.initial.envType);
+  const plaintext = useMemo(() => detectPlaintextSecrets(config), [config]);
+  const secrets = useMemo(() => referencedSecrets(config), [config]);
 
   const copy = async () => {
     await navigator.clipboard.writeText(yaml);
@@ -26,6 +34,46 @@ export default function OverviewStep({ config }: StepProps) {
 
   return (
     <div className="space-y-5">
+      {plaintext.length > 0 && (
+        <div className="rounded-tk border border-tk-warning/50 bg-tk-warning/10 p-4">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-tk-warning">
+            ⚠ {plaintext.length} plaintext secret
+            {plaintext.length > 1 ? "s" : ""} in values.yaml
+          </h3>
+          <ul className="mt-2 space-y-1 text-xs text-tk-purple-100/90">
+            {plaintext.map((s) => (
+              <li key={s.label}>
+                <span className="font-semibold">{s.label}</span> — {s.hint}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {secrets.length > 0 && (
+        <Card title="Referenced Kubernetes Secrets">
+          <p className="text-sm text-tk-purple-200/80">
+            Your values reference {secrets.length} existing Secret
+            {secrets.length > 1 ? "s" : ""}:{" "}
+            {secrets.map((s) => (
+              <code key={s.name} className="mr-2 text-tk-pink">
+                {s.name}
+              </code>
+            ))}
+            . Create them before installing — download a skeleton to fill in.
+          </p>
+          <div>
+            <button
+              type="button"
+              onClick={() => downloadSecrets(config)}
+              className="rounded-full border border-tk-purple-400 px-4 py-1.5 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
+            >
+              Download secrets.yaml template
+            </button>
+          </div>
+        </Card>
+      )}
+
       <Card title="Summary">
         <div className="grid gap-x-8 sm:grid-cols-2">
           <Summary label="Company" value={config.initial.companyName} />
