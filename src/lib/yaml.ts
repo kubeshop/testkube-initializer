@@ -1,4 +1,4 @@
-import { stringify } from "yaml";
+import { parse, stringify } from "yaml";
 import {
   isEnterprise,
   type ConnectionMode,
@@ -37,6 +37,15 @@ function applyAdvanced(base: Dict, cfg: TestkubeConfig): Dict {
       const n = Number(raw);
       if (Number.isNaN(n)) continue;
       value = n;
+    } else if (def.type === "yaml") {
+      // The field stores raw YAML/JSON text; parse it into structured data.
+      try {
+        const parsed = parse(String(raw));
+        if (parsed === null || parsed === undefined) continue;
+        value = parsed;
+      } catch {
+        continue; // skip invalid YAML rather than breaking the whole document
+      }
     }
     setPath(base, path, value);
   }

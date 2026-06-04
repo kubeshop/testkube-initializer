@@ -1,6 +1,6 @@
 import { isEnterprise, type TestkubeConfig } from "../types/config";
 
-export type AdvancedType = "text" | "number" | "boolean" | "select";
+export type AdvancedType = "text" | "number" | "boolean" | "select" | "yaml";
 
 export interface AdvancedFieldDef {
   // Exact dotted Helm value path. Used both as the override key and to look
@@ -74,6 +74,64 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       path: "testkube-cloud-api.api.migrations.enabled",
       label: "Run DB migrations",
       type: "boolean",
+      flavor: "enterprise",
+    },
+    // --- Scheduling (cluster-wide, both flavors) ---
+    {
+      path: "global.nodeSelector",
+      label: "Global nodeSelector (YAML)",
+      type: "yaml",
+      placeholder: "disktype: ssd",
+      flavor: "both",
+    },
+    {
+      path: "global.tolerations",
+      label: "Global tolerations (YAML)",
+      type: "yaml",
+      placeholder: "- key: dedicated\n  operator: Equal\n  value: testkube\n  effect: NoSchedule",
+      flavor: "both",
+    },
+    {
+      path: "global.affinity",
+      label: "Global affinity (YAML)",
+      type: "yaml",
+      placeholder:
+        "podAntiAffinity:\n  preferredDuringSchedulingIgnoredDuringExecution:\n    - weight: 100\n      podAffinityTerm:\n        topologyKey: kubernetes.io/hostname",
+      flavor: "both",
+    },
+    // --- High availability ---
+    {
+      path: "global.podDisruptionBudget.enabled",
+      label: "Enable PodDisruptionBudgets",
+      type: "boolean",
+      flavor: "both",
+    },
+    {
+      path: "testkube-operator.replicaCount",
+      label: "Operator replicas",
+      type: "number",
+      placeholder: "1",
+      flavor: "oss",
+    },
+    {
+      path: "testkube-cloud-api.replicaCount",
+      label: "Control Plane API replicas",
+      type: "number",
+      placeholder: "1",
+      flavor: "enterprise",
+    },
+    {
+      path: "testkube-cloud-ui.replicaCount",
+      label: "Dashboard replicas",
+      type: "number",
+      placeholder: "1",
+      flavor: "enterprise",
+    },
+    {
+      path: "testkube-worker-service.replicaCount",
+      label: "Worker Service replicas",
+      type: "number",
+      placeholder: "1",
       flavor: "enterprise",
     },
   ],

@@ -1,5 +1,6 @@
 import { Card, Toggle } from "../components/ui";
 import CustomizePanel from "../components/CustomizePanel";
+import { applyHaPreset } from "../lib/presets";
 import type { StepProps } from "./types";
 
 export default function CoreComponentsStep({ config, update, setAdvanced }: StepProps) {
@@ -36,6 +37,23 @@ export default function CoreComponentsStep({ config, update, setAdvanced }: Step
             checked={c.ai}
             onChange={(v) => update("core", { ai: v })}
           />
+        </div>
+      </Card>
+
+      <Card title="High availability">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm text-tk-purple-200/80">
+            Apply an HA baseline: PodDisruptionBudgets, 2 replicas for stateless
+            components, and pod anti-affinity. You can fine-tune it in the
+            Customize panels below.
+          </p>
+          <button
+            type="button"
+            onClick={() => applyHaPreset(config, setAdvanced)}
+            className="flex-shrink-0 rounded-full bg-tk-pink px-4 py-2 text-sm font-bold text-black transition hover:brightness-95"
+          >
+            Apply HA preset
+          </button>
         </div>
       </Card>
 

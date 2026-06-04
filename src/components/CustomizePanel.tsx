@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { parse } from "yaml";
 import { Field, Select, TextInput, Toggle } from "./ui";
 import { advancedFieldsFor, type AdvancedFieldDef } from "../lib/advancedFields";
 import { tipFor } from "../lib/tips";
@@ -29,6 +30,35 @@ function AdvancedFieldInput({
   }
 
   const hint = tip ? `${tip} (${def.path})` : def.path;
+
+  if (def.type === "yaml") {
+    const text = String(value ?? "");
+    let error = "";
+    if (text.trim()) {
+      try {
+        parse(text);
+      } catch (e) {
+        error = (e as Error).message;
+      }
+    }
+    return (
+      <Field label={def.label} hint={hint} help={tip} helpPath={def.path}>
+        <textarea
+          spellCheck={false}
+          rows={4}
+          placeholder={def.placeholder}
+          value={text}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full resize-y rounded-tk-md border border-tk-purple-600 bg-tk-purple-900/60 px-4 py-2.5 font-mono text-xs text-white placeholder:text-tk-purple-200/40 outline-none transition focus:border-tk-purple-400 focus:ring-2 focus:ring-tk-purple-500/40"
+        />
+        {error && (
+          <span className="mt-1 block text-xs text-tk-error">
+            Invalid YAML: {error}
+          </span>
+        )}
+      </Field>
+    );
+  }
 
   if (def.type === "select") {
     // Prepend an explicit "not set" option so the first real option is never

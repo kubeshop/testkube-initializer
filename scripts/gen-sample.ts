@@ -48,6 +48,21 @@ const enterprise: TestkubeConfig = {
   },
 };
 
+// OSS with the HA preset applied (advanced overrides), to validate the new
+// scheduling / replicas / PDB fields render against the chart.
+const ossHa: TestkubeConfig = {
+  ...oss,
+  advanced: {
+    "global.podDisruptionBudget.enabled": true,
+    "global.affinity":
+      "podAntiAffinity:\n  preferredDuringSchedulingIgnoredDuringExecution:\n    - weight: 100\n      podAffinityTerm:\n        topologyKey: kubernetes.io/hostname\n        labelSelector: {}",
+    "global.tolerations":
+      "- key: dedicated\n  operator: Equal\n  value: testkube\n  effect: NoSchedule",
+    "testkube-operator.replicaCount": "2",
+  },
+};
+
 writeFileSync(resolve(outDir, "oss-kind.yaml"), generateYaml(oss));
+writeFileSync(resolve(outDir, "oss-ha.yaml"), generateYaml(ossHa));
 writeFileSync(resolve(outDir, "enterprise.yaml"), generateYaml(enterprise));
-console.log("Wrote samples/oss-kind.yaml and samples/enterprise.yaml");
+console.log("Wrote samples/oss-kind.yaml, samples/oss-ha.yaml and samples/enterprise.yaml");
