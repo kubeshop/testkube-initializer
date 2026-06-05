@@ -91,10 +91,14 @@ export interface NatsConfig {
 export interface AuthConfig {
   // Dex is the identity broker used by Testkube Enterprise.
   dexEnabled: boolean;
+  // Public Dex issuer URL (what browsers / the API use).
   issuerUrl: string;
   connector: AuthConnectorType;
+  // Upstream IdP OAuth client credentials (fed through Dex).
   clientId: string;
   clientSecret: string;
+  // Upstream OIDC issuer (e.g. https://accounts.google.com) — not the Dex URL.
+  upstreamIssuerUrl: string;
   adminEmails: string;
 }
 

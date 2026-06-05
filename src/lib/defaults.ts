@@ -69,6 +69,7 @@ export const defaultConfig: TestkubeConfig = {
     connector: "oidc",
     clientId: "",
     clientSecret: "",
+    upstreamIssuerUrl: "",
     adminEmails: "",
   },
   endpoints: {

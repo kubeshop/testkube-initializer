@@ -33,13 +33,13 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
           onChange={(v) => update("auth", { dexEnabled: v })}
         />
         <Field
-          label="Issuer URL"
-          hint="Public OIDC issuer URL exposed by Dex."
+          label="Dex issuer URL"
+          hint="Leave empty to auto-derive from your domain (or localhost for internal access)."
           help={tipFor(env, "global.dex.issuer") ?? "Public OIDC issuer URL exposed by Dex; must be reachable by clients and the API."}
           helpPath="global.dex.issuer"
         >
           <TextInput
-            placeholder="https://dashboard.testkube.example.com/idp"
+            placeholder="https://api.testkube.example.com/idp"
             value={c.issuerUrl}
             onChange={(e) => update("auth", { issuerUrl: e.target.value })}
           />
@@ -47,7 +47,12 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
       </Card>
 
       {c.dexEnabled && (
-        <Card title="Connector">
+        <Card title="Upstream identity provider">
+          <p className="mb-4 text-sm text-tk-purple-200">
+            Provide IdP credentials for production. For lab / internal access without
+            an IdP, leave these empty — the chart will configure a static local user
+            (password: <code className="text-tk-pink">password</code>).
+          </p>
           <Field
             label="Connector type"
             help="Upstream identity provider Dex federates to (generic OIDC, Google, GitHub, GitLab or LDAP)."
@@ -64,6 +69,19 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
               ]}
             />
           </Field>
+          {c.connector === "oidc" && (
+            <Field
+              label="Upstream OIDC issuer"
+              hint="Your IdP issuer URL — not the Dex URL."
+              help="Issuer URL of your upstream OIDC provider (e.g. https://login.microsoftonline.com/{tenant}/v2.0)."
+            >
+              <TextInput
+                placeholder="https://accounts.google.com"
+                value={c.upstreamIssuerUrl}
+                onChange={(e) => update("auth", { upstreamIssuerUrl: e.target.value })}
+              />
+            </Field>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
               label="Client ID"
@@ -87,8 +105,8 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
           </div>
           <Field
             label="Admin emails"
-            hint="Comma-separated list granted admin access."
-            help="Comma-separated emails that are granted administrator access on first login."
+            hint="Used for static local login when no IdP is configured."
+            help="Email for the built-in static user (lab/internal). Also used to grant admin access on first SSO login."
           >
             <TextInput
               placeholder="admin@acme.com, ops@acme.com"

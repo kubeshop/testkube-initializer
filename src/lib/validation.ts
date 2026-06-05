@@ -94,12 +94,33 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
 
   // --- Authentication (Enterprise / Dex) ---
   if (enterprise && cfg.auth.dexEnabled) {
-    if (!cfg.auth.issuerUrl.trim()) {
-      warn("dex-issuer", STEP.auth, "Dex issuer URL is not set.");
+    const hasClient = cfg.auth.clientId.trim() && cfg.auth.clientSecret.trim();
+    const needsUpstreamIssuer = cfg.auth.connector === "oidc";
+    if (hasClient && needsUpstreamIssuer && !cfg.auth.upstreamIssuerUrl.trim()) {
+      err(
+        "oidc-issuer",
+        STEP.auth,
+        "Upstream OIDC issuer URL is required when Client ID and Secret are set."
+      );
     }
-    const needsClient = ["oidc", "google", "github", "gitlab"].includes(cfg.auth.connector);
-    if (needsClient && (!cfg.auth.clientId.trim() || !cfg.auth.clientSecret.trim())) {
-      warn("dex-client", STEP.auth, `Connector "${cfg.auth.connector}" usually needs a client ID and secret.`);
+    if (
+      hasClient &&
+      !needsUpstreamIssuer &&
+      ["google", "github", "gitlab"].includes(cfg.auth.connector) === false &&
+      cfg.auth.connector === "ldap"
+    ) {
+      warn("ldap-config", STEP.auth, "LDAP connector requires extra Dex config — use Customize or the docs.");
+    }
+    if (
+      cfg.initial.envType === "enterprise-prod" &&
+      !hasClient &&
+      !cfg.endpoints.useKubernetesService
+    ) {
+      warn(
+        "auth-idp",
+        STEP.auth,
+        "Production with Ingress usually needs an upstream IdP (Client ID + Secret). Without it, only static local login is available in lab/internal mode."
+      );
     }
   }
 
