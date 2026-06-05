@@ -33,9 +33,15 @@ export default function App() {
   const [active, setActive] = useState(0);
   const [fieldHelp, setFieldHelp] = useState<FieldHelp | null>(null);
   const [previewOpen, setPreviewOpen] = useState(true);
+  // Validation stays dormant until the user reaches the Overview step, so the
+  // wizard doesn't greet them with errors. Once activated it remains on.
+  const [validationActive, setValidationActive] = useState(false);
 
   // Reset the contextual help whenever the wizard step changes.
   useEffect(() => setFieldHelp(null), [active]);
+  useEffect(() => {
+    if (active === STEPS.length - 1) setValidationActive(true);
+  }, [active]);
 
   const update = useCallback(
     <K extends keyof TestkubeConfig>(key: K, patch: Partial<TestkubeConfig[K]>) => {
@@ -56,12 +62,13 @@ export default function App() {
   const isLast = active === STEPS.length - 1;
 
   const validation = useMemo(() => validate(config), [config]);
-  const hasErrors = validation.errors.length > 0;
+  const hasErrors = validationActive && validation.errors.length > 0;
   const errorsByStep = useMemo(() => {
     const m: Record<number, number> = {};
+    if (!validationActive) return m;
     for (const e of validation.errors) m[e.step] = (m[e.step] ?? 0) + 1;
     return m;
-  }, [validation]);
+  }, [validation, validationActive]);
 
   return (
     <HelpContext.Provider value={setFieldHelp}>
@@ -228,6 +235,7 @@ export default function App() {
           config={config}
           open={previewOpen}
           onToggle={() => setPreviewOpen((o) => !o)}
+          validateActive={validationActive}
         />
         <footer className="border-t border-tk-purple-600/50 bg-black/40 px-6 py-4">
           <div className="mx-auto flex max-w-[1200px] items-center justify-end gap-3">

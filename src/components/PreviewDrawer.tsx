@@ -9,15 +9,20 @@ export default function PreviewDrawer({
   config,
   open,
   onToggle,
+  validateActive = false,
 }: {
   config: TestkubeConfig;
   open: boolean;
   onToggle: () => void;
+  validateActive?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const yaml = useMemo(() => generateYaml(config), [config]);
   const lines = yaml.split("\n").length;
-  const errorCount = useMemo(() => validate(config).errors.length, [config]);
+  const errorCount = useMemo(
+    () => (validateActive ? validate(config).errors.length : 0),
+    [config, validateActive]
+  );
 
   const copy = async () => {
     await navigator.clipboard.writeText(yaml);
