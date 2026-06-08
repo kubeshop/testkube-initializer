@@ -9,7 +9,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "extract-tips": "node scripts/extract-tips.mjs"
+    "extract-tips": "node scripts/extract-tips.mjs",
+    "docker:build": "docker build -t testkube-initializer:latest .",
+    "docker:run": "docker run --rm -p 8080:80 testkube-initializer:latest"
   },
   "dependencies": {
     "react": "^18.3.1",

@@ -20,6 +20,24 @@ npm run build    # type-check + production build (output in dist/)
 npm run preview  # preview the production build
 ```
 
+## Docker
+
+Build and run the production image (nginx serving the static `dist/` build):
+
+```bash
+docker build -t testkube-initializer:latest .
+docker run --rm -p 8080:80 testkube-initializer:latest
+```
+
+Open http://localhost:8080
+
+npm shortcuts:
+
+```bash
+npm run docker:build
+npm run docker:run
+```
+
 ## What it does
 
 The wizard walks through 8 steps:
