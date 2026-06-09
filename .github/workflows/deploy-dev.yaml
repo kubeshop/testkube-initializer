@@ -1,0 +1,88 @@
+name: Deploy Dev
+
+# Opens (or updates) a PR in testkube-deployment after a successful main build.
+# Pattern: testkube-thirdparty-artifacts (peter-evans/create-pull-request + PAT_TOKEN).
+
+on:
+  workflow_run:
+    workflows: ["Build and Push"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: deploy-dev-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  bump-deployment:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Resolve image tag
+        id: tag
+        run: |
+          VERSION=$(curl -fsSL \
+            "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.event.workflow_run.head_sha }}/package.json" \
+            | jq -r .version)
+          RUN_NUM="${{ github.event.workflow_run.run_number }}"
+          TAG="${VERSION}-dev.${RUN_NUM}"
+          echo "value=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Image tag: ${TAG}"
+
+      - name: Checkout testkube-deployment
+        uses: actions/checkout@v4
+        with:
+          repository: kubeshop/testkube-deployment
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+      - name: Bump initializer image
+        env:
+          TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          KUSTOMIZE=envs/dev/initializer/kustomize/kustomization.yaml
+          DEPLOY=envs/dev/initializer/kustomize/base/deployment.yaml
+
+          if [ ! -f "$KUSTOMIZE" ] || [ ! -f "$DEPLOY" ]; then
+            echo "Initializer kustomize paths not found in testkube-deployment (merge PR #561 first?)"
+            exit 1
+          fi
+
+          sed -i "s/newTag: .*/newTag: ${TAG}/" "$KUSTOMIZE"
+          sed -i "s|image: kubeshop/testkube-initializer:.*|image: kubeshop/testkube-initializer:${TAG}|" "$DEPLOY"
+
+      - name: Create deployment pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          commit-message: "chore(dev): bump testkube-initializer to ${{ steps.tag.outputs.value }}"
+          title: "chore(dev): bump testkube-initializer to ${{ steps.tag.outputs.value }}"
+          body: |
+            Automated image bump from [testkube-initializer workflow run ${{ github.event.workflow_run.run_number }}](${{ github.event.workflow_run.html_url }}).
+
+            - **Image:** `kubeshop/testkube-initializer:${{ steps.tag.outputs.value }}`
+            - **Commit:** `${{ github.event.workflow_run.head_sha }}`
+          branch: bump/testkube-initializer-${{ steps.tag.outputs.value }}
+          delete-branch: true
+          labels: |
+            automated
+            testkube-initializer
+            dev
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Dev deployment PR"
+            echo ""
+            echo "- **Image tag:** \`${{ steps.tag.outputs.value }}\`"
+            echo "- **Trigger run:** [Build and Push #${{ github.event.workflow_run.run_number }}](${{ github.event.workflow_run.html_url }})"
+          } >> "$GITHUB_STEP_SUMMARY"
