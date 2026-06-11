@@ -1,7 +1,7 @@
 name: Deploy Dev
 
 # Opens (or updates) a PR in testkube-deployment after a successful main build.
-# Pattern: testkube-thirdparty-artifacts (peter-evans/create-pull-request + PAT_TOKEN).
+# Uses CI_BOT_TOKEN (same as testkube / testkube-cloud-api) for cross-repo access.
 
 on:
   workflow_run:
@@ -33,18 +33,47 @@ jobs:
           echo "value=${TAG}" >> "$GITHUB_OUTPUT"
           echo "Image tag: ${TAG}"
 
+      - name: Verify access to testkube-deployment
+        id: auth
+        env:
+          CI_BOT_TOKEN: ${{ secrets.CI_BOT_TOKEN }}
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          pick_token() {
+            for NAME in CI_BOT_TOKEN PAT_TOKEN; do
+              eval "T=\${${NAME}}"
+              [ -z "${T}" ] && continue
+              HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+                -H "Authorization: Bearer ${T}" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/kubeshop/testkube-deployment")
+              if [ "${HTTP}" = "200" ]; then
+                echo "source=${NAME}" >> "$GITHUB_OUTPUT"
+                return 0
+              fi
+              echo "::warning::${NAME} cannot read kubeshop/testkube-deployment (HTTP ${HTTP})"
+            done
+            echo "::error::No token can access kubeshop/testkube-deployment."
+            echo "Configure CI_BOT_TOKEN (preferred, same as kubeshop/testkube) or grant PAT_TOKEN access to the private repo + kubeshop SSO."
+            exit 1
+          }
+          pick_token
+
       - name: Checkout testkube-deployment
         uses: actions/checkout@v4
         with:
           repository: kubeshop/testkube-deployment
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.CI_BOT_TOKEN || secrets.PAT_TOKEN }}
+          path: testkube-deployment
 
       - name: Configure Git
+        working-directory: testkube-deployment
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
 
       - name: Bump initializer image
+        working-directory: testkube-deployment
         env:
           TAG: ${{ steps.tag.outputs.value }}
         run: |
@@ -62,7 +91,8 @@ jobs:
       - name: Create deployment pull request
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.CI_BOT_TOKEN || secrets.PAT_TOKEN }}
+          path: testkube-deployment
           commit-message: "chore(dev): bump testkube-initializer to ${{ steps.tag.outputs.value }}"
           title: "chore(dev): bump testkube-initializer to ${{ steps.tag.outputs.value }}"
           body: |
