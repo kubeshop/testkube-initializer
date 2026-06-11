@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { downloadYaml, generateYaml } from "../lib/yaml";
+import { generateYaml } from "../lib/yaml";
 import { validate } from "../lib/validation";
 import type { TestkubeConfig } from "../types/config";
 
@@ -10,11 +10,13 @@ export default function PreviewDrawer({
   open,
   onToggle,
   validateActive = false,
+  onDownloadYaml,
 }: {
   config: TestkubeConfig;
   open: boolean;
   onToggle: () => void;
   validateActive?: boolean;
+  onDownloadYaml: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   const yaml = useMemo(() => generateYaml(config), [config]);
@@ -59,7 +61,7 @@ export default function PreviewDrawer({
           </button>
           <button
             type="button"
-            onClick={() => downloadYaml(config)}
+            onClick={onDownloadYaml}
             disabled={errorCount > 0}
             title={errorCount > 0 ? `Resolve ${errorCount} error(s) to download` : undefined}
             className="rounded-full bg-tk-yellow px-3 py-1 text-xs font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"

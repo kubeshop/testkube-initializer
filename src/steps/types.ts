@@ -8,4 +8,5 @@ export interface StepProps {
   ) => void;
   setAdvanced: (path: string, value: AdvancedScalar) => void;
   goToStep?: (index: number) => void;
+  onDownloadYaml?: () => void;
 }

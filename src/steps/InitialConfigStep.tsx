@@ -4,6 +4,7 @@ import { tipFor } from "../lib/tips";
 import { useSetHelp } from "../lib/helpContext";
 import type { EnvType, KubernetesType, LicenseMode } from "../types/config";
 import { isEnterprise } from "../types/config";
+import { labEndpointPatch, prodEndpointPatch } from "../lib/envPresets";
 import type { StepProps } from "./types";
 
 export default function InitialConfigStep({ config, update, setAdvanced }: StepProps) {
@@ -76,7 +77,14 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
         >
           <SegmentedControl<EnvType>
             value={c.envType}
-            onChange={(v) => update("initial", { envType: v })}
+            onChange={(v) => {
+              update("initial", { envType: v });
+              if (v === "enterprise-lab") {
+                update("endpoints", labEndpointPatch());
+              } else if (v === "enterprise-prod") {
+                update("endpoints", prodEndpointPatch());
+              }
+            }}
             options={[
               { value: "oss", label: "OSS" },
               { value: "enterprise-prod", label: "Ent. Prod" },

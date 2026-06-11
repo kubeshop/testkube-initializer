@@ -4,6 +4,7 @@ import { APP_VERSION, defaultConfig } from "./lib/defaults";
 import { STEPS } from "./lib/steps";
 import { downloadYaml } from "./lib/yaml";
 import { HelpContext, type FieldHelp } from "./lib/helpContext";
+import FeedbackModal from "./components/FeedbackModal";
 import PreviewDrawer from "./components/PreviewDrawer";
 import { validate } from "./lib/validation";
 import type { AdvancedScalar, TestkubeConfig } from "./types/config";
@@ -33,6 +34,7 @@ export default function App() {
   const [active, setActive] = useState(0);
   const [fieldHelp, setFieldHelp] = useState<FieldHelp | null>(null);
   const [previewOpen, setPreviewOpen] = useState(true);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   // Validation stays dormant until the user reaches the Overview step, so the
   // wizard doesn't greet them with errors. Once activated it remains on.
   const [validationActive, setValidationActive] = useState(false);
@@ -56,6 +58,11 @@ export default function App() {
       advanced: { ...prev.advanced, [path]: value },
     }));
   }, []);
+
+  const handleDownloadYaml = useCallback(() => {
+    downloadYaml(config);
+    setFeedbackOpen(true);
+  }, [config]);
 
   const meta = STEPS[active];
   const StepComponent = STEP_COMPONENTS[active];
@@ -148,6 +155,7 @@ export default function App() {
               update={update}
               setAdvanced={setAdvanced}
               goToStep={setActive}
+              onDownloadYaml={handleDownloadYaml}
             />
           </div>
 
@@ -164,7 +172,7 @@ export default function App() {
             {isLast ? (
               <button
                 type="button"
-                onClick={() => downloadYaml(config)}
+                onClick={handleDownloadYaml}
                 disabled={hasErrors}
                 title={hasErrors ? `Resolve ${validation.errors.length} error(s) to export` : undefined}
                 className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
@@ -236,6 +244,12 @@ export default function App() {
           open={previewOpen}
           onToggle={() => setPreviewOpen((o) => !o)}
           validateActive={validationActive}
+          onDownloadYaml={handleDownloadYaml}
+        />
+        <FeedbackModal
+          open={feedbackOpen}
+          onClose={() => setFeedbackOpen(false)}
+          config={config}
         />
         <footer className="border-t border-tk-purple-600/50 bg-black/40 px-6 py-4">
           <div className="mx-auto flex max-w-[1200px] items-center justify-end gap-3">
@@ -247,7 +261,7 @@ export default function App() {
             )}
             <button
               type="button"
-              onClick={() => downloadYaml(config)}
+              onClick={handleDownloadYaml}
               disabled={hasErrors}
               title={hasErrors ? `Resolve ${validation.errors.length} error(s) to export` : undefined}
               className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"

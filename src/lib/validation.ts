@@ -1,8 +1,8 @@
 import { isEnterprise, type TestkubeConfig } from "../types/config";
+import { isLabEnv, isProdEnv } from "./envPresets";
 
 export interface Issue {
   id: string;
-  // Wizard step index this issue belongs to (for "Go to step").
   step: number;
   message: string;
 }
@@ -12,7 +12,6 @@ export interface ValidationResult {
   warnings: Issue[];
 }
 
-// Step indices (must match the order in App / STEPS).
 const STEP = {
   initial: 0,
   core: 1,
@@ -24,13 +23,24 @@ const STEP = {
 } as const;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i;
+const LOCAL_TLD_RE = /\.(local|test|invalid|localhost)$/i;
 
-// Validates the configuration. `errors` are blocking (missing required values
-// that would break the install); `warnings` are non-blocking consistency hints.
+function isHttpUrl(value: string, allowHttp = false): boolean {
+  try {
+    const u = new URL(value);
+    return u.protocol === "https:" || (allowHttp && u.protocol === "http:");
+  } catch {
+    return false;
+  }
+}
+
 export function validate(cfg: TestkubeConfig): ValidationResult {
   const errors: Issue[] = [];
   const warnings: Issue[] = [];
   const enterprise = isEnterprise(cfg.initial.envType);
+  const lab = isLabEnv(cfg.initial.envType);
+  const prod = isProdEnv(cfg.initial.envType);
   const err = (id: string, step: number, message: string) =>
     errors.push({ id, step, message });
   const warn = (id: string, step: number, message: string) =>
@@ -47,11 +57,72 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
   }
 
   // --- Endpoints / TLS ---
-  if (!cfg.endpoints.useKubernetesService && !cfg.endpoints.domain.trim()) {
+  const domain = cfg.endpoints.domain.trim();
+
+  if (lab && domain) {
+    warn(
+      "lab-domain",
+      STEP.endpoints,
+      "Ent. Lab does not need a base domain — leave it empty for port-forward / in-cluster access."
+    );
+  }
+
+  if (lab && cfg.endpoints.certManager) {
+    warn(
+      "lab-cert",
+      STEP.endpoints,
+      "cert-manager is usually disabled for Ent. Lab — it is turned off automatically when you select Ent. Lab."
+    );
+  }
+
+  if (prod && cfg.endpoints.useKubernetesService) {
+    warn(
+      "prod-k8s-svc",
+      STEP.endpoints,
+      "Ent. Prod normally uses Ingress (disable “Use Kubernetes Service”)."
+    );
+  }
+
+  if (!lab && !cfg.endpoints.useKubernetesService && !domain) {
     err("domain", STEP.endpoints, "Base domain is required when exposing endpoints via Ingress.");
   }
-  if (cfg.endpoints.certManager && !cfg.endpoints.certManagerIssuerRef.trim()) {
-    err("issuer", STEP.endpoints, "cert-manager issuer reference is required when cert-manager is enabled.");
+
+  if (prod && domain && !DOMAIN_RE.test(domain)) {
+    err(
+      "domain-format",
+      STEP.endpoints,
+      "Base domain must be a valid hostname (e.g. testkube.example.com)."
+    );
+  }
+
+  if (prod && domain && LOCAL_TLD_RE.test(domain)) {
+    warn(
+      "domain-tld",
+      STEP.endpoints,
+      "Domains like .local / .test are for lab use — prefer Ent. Lab, or use a real domain for Ent. Prod."
+    );
+    if (
+      cfg.endpoints.certManager &&
+      cfg.endpoints.certManagerIssuerRef.trim() === "letsencrypt-prod"
+    ) {
+      warn(
+        "issuer-local",
+        STEP.endpoints,
+        "letsencrypt-prod cannot issue certificates for .local — use an issuer that exists in your cluster (e.g. selfsigned for kind)."
+      );
+    }
+  }
+
+  if (
+    cfg.endpoints.certManager &&
+    !cfg.endpoints.certManagerIssuerRef.trim() &&
+    !lab
+  ) {
+    err(
+      "issuer",
+      STEP.endpoints,
+      "cert-manager ClusterIssuer / Issuer name is required (must exist in your cluster)."
+    );
   }
 
   // --- Database (external) ---
@@ -96,6 +167,15 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
   if (enterprise && cfg.auth.dexEnabled) {
     const hasClient = cfg.auth.clientId.trim() && cfg.auth.clientSecret.trim();
     const needsUpstreamIssuer = cfg.auth.connector === "oidc";
+
+    if (cfg.auth.issuerUrl.trim() && !isHttpUrl(cfg.auth.issuerUrl.trim(), lab)) {
+      err(
+        "dex-issuer-url",
+        STEP.auth,
+        "Dex issuer URL must be a full URL (https://…). Leave empty to auto-derive from your domain."
+      );
+    }
+
     if (hasClient && needsUpstreamIssuer && !cfg.auth.upstreamIssuerUrl.trim()) {
       err(
         "oidc-issuer",
@@ -103,23 +183,32 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
         "Upstream OIDC issuer URL is required when Client ID and Secret are set."
       );
     }
-    if (
-      hasClient &&
-      !needsUpstreamIssuer &&
-      ["google", "github", "gitlab"].includes(cfg.auth.connector) === false &&
-      cfg.auth.connector === "ldap"
-    ) {
+
+    if (cfg.auth.upstreamIssuerUrl.trim() && !isHttpUrl(cfg.auth.upstreamIssuerUrl.trim())) {
+      err(
+        "upstream-issuer-format",
+        STEP.auth,
+        "Upstream OIDC issuer must be a full HTTPS URL (e.g. https://login.microsoftonline.com/{tenant}/v2.0)."
+      );
+    }
+
+    if (cfg.auth.connector === "ldap" && hasClient) {
       warn("ldap-config", STEP.auth, "LDAP connector requires extra Dex config — use Customize or the docs.");
     }
-    if (
-      cfg.initial.envType === "enterprise-prod" &&
-      !hasClient &&
-      !cfg.endpoints.useKubernetesService
-    ) {
+
+    if (prod && !hasClient && !cfg.endpoints.useKubernetesService) {
       warn(
         "auth-idp",
         STEP.auth,
-        "Production with Ingress usually needs an upstream IdP (Client ID + Secret). Without it, only static local login is available in lab/internal mode."
+        "No upstream IdP configured — static login will use Admin email (step 1) with password \"password\"."
+      );
+    }
+
+    if (!cfg.initial.adminEmail.trim() && !hasClient) {
+      warn(
+        "auth-admin-email",
+        STEP.auth,
+        "Set Admin email in step 1 — it becomes the static login user when no IdP is configured."
       );
     }
   }

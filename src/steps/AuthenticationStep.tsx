@@ -2,11 +2,14 @@ import { Card, Field, Select, TextInput, Toggle } from "../components/ui";
 import CustomizePanel from "../components/CustomizePanel";
 import { tipFor } from "../lib/tips";
 import { isEnterprise, type AuthConnectorType } from "../types/config";
+import { isLabEnv, isProdEnv } from "../lib/envPresets";
 import type { StepProps } from "./types";
 
 export default function AuthenticationStep({ config, update, setAdvanced }: StepProps) {
   const c = config.auth;
   const enterprise = isEnterprise(config.initial.envType);
+  const lab = isLabEnv(config.initial.envType);
+  const prod = isProdEnv(config.initial.envType);
   const env = config.initial.envType;
 
   if (!enterprise) {
@@ -23,6 +26,14 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
 
   return (
     <div className="space-y-5">
+      {lab && (
+        <p className="rounded-tk-md border border-tk-purple-400/40 bg-tk-purple-500/10 px-4 py-3 text-sm text-tk-purple-100/90">
+          <strong className="text-white">Ent. Lab</strong> — leave Dex issuer and IdP fields
+          empty. After install, port-forward Dex/UI and sign in with your{" "}
+          <strong className="text-white">Admin email</strong> (step 1) and password{" "}
+          <code className="text-tk-pink">password</code>.
+        </p>
+      )}
       <Card title="Identity broker (Dex)">
         <Toggle
           label="Enable Dex"
@@ -34,8 +45,17 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
         />
         <Field
           label="Dex issuer URL"
-          hint="Leave empty to auto-derive from your domain (or localhost for internal access)."
-          help={tipFor(env, "global.dex.issuer") ?? "Public OIDC issuer URL exposed by Dex; must be reachable by clients and the API."}
+          hint={
+            lab
+              ? "Leave empty → http://localhost:5556 (port-forward)."
+              : prod
+                ? "Leave empty → https://api.<your-domain>/idp"
+                : "Leave empty to auto-derive from your domain."
+          }
+          help={
+            tipFor(env, "global.dex.issuer") ??
+            "Public OIDC issuer URL for Dex. Leave empty to auto-derive — do not enter random text."
+          }
           helpPath="global.dex.issuer"
         >
           <TextInput
@@ -49,9 +69,11 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
       {c.dexEnabled && (
         <Card title="Upstream identity provider">
           <p className="mb-4 text-sm text-tk-purple-200">
-            Provide IdP credentials for production. For lab / internal access without
-            an IdP, leave these empty — the chart will configure a static local user
-            (password: <code className="text-tk-pink">password</code>).
+            {lab
+              ? "Leave IdP fields empty for static local login."
+              : "Configure your corporate IdP for production SSO."}{" "}
+            When Client ID and Secret are empty, sign in with your Admin email from step 1
+            and password <code className="text-tk-pink">password</code>.
           </p>
           <Field
             label="Connector type"

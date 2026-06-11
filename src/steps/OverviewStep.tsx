@@ -4,7 +4,6 @@ import { isEnterprise } from "../types/config";
 import {
   detectPlaintextSecrets,
   downloadSecrets,
-  downloadYaml,
   generateYaml,
   referencedSecrets,
 } from "../lib/yaml";
@@ -21,7 +20,7 @@ function Summary({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function OverviewStep({ config, goToStep }: StepProps) {
+export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepProps) {
   const [copied, setCopied] = useState(false);
   const yaml = useMemo(() => generateYaml(config), [config]);
   const enterprise = isEnterprise(config.initial.envType);
@@ -161,8 +160,8 @@ export default function OverviewStep({ config, goToStep }: StepProps) {
           </button>
           <button
             type="button"
-            onClick={() => downloadYaml(config)}
-            disabled={errors.length > 0}
+            onClick={onDownloadYaml}
+            disabled={errors.length > 0 || !onDownloadYaml}
             title={errors.length > 0 ? `Resolve ${errors.length} error(s) to download` : undefined}
             className="rounded-full bg-tk-yellow px-4 py-1.5 text-sm font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
           >

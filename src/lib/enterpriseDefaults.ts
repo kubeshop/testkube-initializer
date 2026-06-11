@@ -1,4 +1,5 @@
 import type { AuthConnectorType, TestkubeConfig } from "../types/config";
+import { isLabEnv, publicEndpointUrls } from "./envPresets";
 
 // Service hostnames come from the chart's fullnameOverride values (not the Helm
 // release name). Keep in sync with testkube-enterprise/values.yaml.
@@ -24,20 +25,21 @@ const STATIC_PASSWORD_HASH =
   "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W";
 
 export function isInternalAccess(cfg: TestkubeConfig): boolean {
+  if (isLabEnv(cfg.initial.envType)) return true;
   return cfg.endpoints.useKubernetesService || !cfg.endpoints.domain.trim();
 }
 
 export function dexIssuerUrl(cfg: TestkubeConfig): string {
   if (cfg.auth.issuerUrl.trim()) return cfg.auth.issuerUrl.trim();
   if (!isInternalAccess(cfg)) {
-    return `https://${cfg.endpoints.apiSubdomain}.${cfg.endpoints.domain}/idp`;
+    return publicEndpointUrls(cfg).dex;
   }
   return "http://localhost:5556";
 }
 
 function dexIdpCallbackUrl(cfg: TestkubeConfig): string {
   if (!isInternalAccess(cfg)) {
-    return `https://${cfg.endpoints.apiSubdomain}.${cfg.endpoints.domain}/idp/callback`;
+    return `${publicEndpointUrls(cfg).dex}/callback`;
   }
   return "http://localhost:5556/idp/callback";
 }
@@ -124,14 +126,15 @@ staticPasswords:
 export function buildDexAdditionalConfig(cfg: TestkubeConfig): string {
   const connector = buildDexConnector(cfg);
   if (connector) return connector;
-  // Fallback static user so Dex always has a connector and the install is functional.
   return buildStaticPasswords(cfg);
 }
 
+/**
+ * OAuth env for the API. Always uses in-cluster Dex for JWKS/token (reliable
+ * startup) while keeping the public issuer URL in global.dex.issuer for browsers.
+ */
 export function buildEnterpriseApiEnv(cfg: TestkubeConfig): Record<string, string | boolean> {
-  if (!isInternalAccess(cfg)) return {};
-
-  const issuer = dexIssuerUrl(cfg);
+  const issuer = dexIssuerUrl(cfg).replace(/\/$/, "");
   return {
     OAUTH_ENABLED: true,
     OAUTH_SKIP_DISCOVERY: true,
@@ -143,10 +146,15 @@ export function buildEnterpriseApiEnv(cfg: TestkubeConfig): Record<string, strin
   };
 }
 
+function hasUpstreamIdp(cfg: TestkubeConfig): boolean {
+  return Boolean(cfg.auth.clientId.trim() && cfg.auth.clientSecret.trim());
+}
+
 export function buildEnterpriseApiBlock(cfg: TestkubeConfig): Record<string, unknown> {
   const internal = isInternalAccess(cfg);
   const { org, env } = bootstrapOrgEnv(cfg);
   const oauthClientId = cfg.auth.clientId.trim() || "testkube-enterprise";
+  const urls = internal ? null : publicEndpointUrls(cfg);
 
   const api: Record<string, unknown> = {
     migrations: { enabled: true },
@@ -167,16 +175,24 @@ export function buildEnterpriseApiBlock(cfg: TestkubeConfig): Record<string, unk
       clientSecret: OAUTH_CLIENT_SECRET,
       redirectUri: internal
         ? "http://localhost:8090/auth/callback"
-        : "",
+        : `${urls!.api}/auth/callback`,
       issuerUrl: "",
       ...(internal ? { allowedExternalRedirectURIs: "http://localhost:*" } : {}),
     },
     outputsBucket: "testkube-cloud-outputs",
+    dex: {
+      grpc: {
+        host: ENT_SVC.dex,
+      },
+    },
   };
 
   if (internal) {
     api.dashboardAddress = "http://localhost:8080";
     api.apiAddress = "http://localhost:8090";
+  } else {
+    api.dashboardAddress = urls!.ui;
+    api.apiAddress = urls!.api;
   }
 
   return api;
@@ -192,6 +208,10 @@ export function buildEnterpriseUiBlock(cfg: TestkubeConfig): Record<string, unkn
   if (internal) {
     ui.apiServerEndpoint = "http://localhost:8090";
     ui.wsServerEndpoint = "ws://localhost:8090";
+  } else {
+    const urls = publicEndpointUrls(cfg);
+    ui.apiServerEndpoint = urls.api;
+    ui.wsServerEndpoint = urls.ws;
   }
 
   return {
@@ -235,6 +255,41 @@ export function buildEnterpriseStorage(cfg: TestkubeConfig): Record<string, unkn
 export function buildEnterpriseDexBlock(cfg: TestkubeConfig): Record<string, unknown> {
   const internal = isInternalAccess(cfg);
   const additionalConfig = buildDexAdditionalConfig(cfg);
+  const urls = internal ? null : publicEndpointUrls(cfg);
+  const staticLogin = !hasUpstreamIdp(cfg);
+
+  const staticClients = internal
+    ? [
+        {
+          id: "testkube-enterprise",
+          redirectURIs: [
+            "http://localhost:8090/auth/callback",
+            "http://localhost:38090/auth/callback",
+            "http://localhost:8090/mcp/auth/callback",
+          ],
+          name: "Testkube",
+          secret: OAUTH_CLIENT_SECRET,
+        },
+        {
+          id: "testkube-cloud-cli",
+          name: "Testkube Enterprise CLI",
+          public: true,
+          redirectURIs: [
+            "http://127.0.0.1:8090/callback",
+            "http://127.0.0.1:38090/callback",
+          ],
+        },
+      ]
+    : staticLogin
+      ? [
+          {
+            id: "testkube-enterprise",
+            redirectURIs: [`${urls!.api}/auth/callback`],
+            name: "Testkube",
+            secret: OAUTH_CLIENT_SECRET,
+          },
+        ]
+      : undefined;
 
   return {
     enabled: cfg.auth.dexEnabled,
@@ -249,32 +304,7 @@ export function buildEnterpriseDexBlock(cfg: TestkubeConfig): Record<string, unk
     configTemplate: {
       customConfig: "",
       additionalConfig,
-      // Only needed for internal mode; ingress mode uses chart template redirect URIs.
-      ...(internal
-        ? {
-            additionalStaticClients: [
-              {
-                id: "testkube-enterprise",
-                redirectURIs: [
-                  "http://localhost:8090/auth/callback",
-                  "http://localhost:38090/auth/callback",
-                  "http://localhost:8090/mcp/auth/callback",
-                ],
-                name: "Testkube",
-                secret: OAUTH_CLIENT_SECRET,
-              },
-              {
-                id: "testkube-cloud-cli",
-                name: "Testkube Enterprise CLI",
-                public: true,
-                redirectURIs: [
-                  "http://127.0.0.1:8090/callback",
-                  "http://127.0.0.1:38090/callback",
-                ],
-              },
-            ],
-          }
-        : {}),
+      ...(staticClients ? { additionalStaticClients: staticClients } : {}),
     },
   };
 }
