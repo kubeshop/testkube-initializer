@@ -22,12 +22,17 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Checkout initializer (for package version)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+          path: initializer
+
       - name: Resolve image tag
         id: tag
         run: |
-          VERSION=$(curl -fsSL \
-            "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.event.workflow_run.head_sha }}/package.json" \
-            | jq -r .version)
+          VERSION=$(node -p "require('./initializer/package.json').version")
           RUN_NUM="${{ github.event.workflow_run.run_number }}"
           TAG="${VERSION}-dev.${RUN_NUM}"
           echo "value=${TAG}" >> "$GITHUB_OUTPUT"
