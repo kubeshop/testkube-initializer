@@ -6,7 +6,10 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm config set fetch-retries 5 \
+ && npm config set fetch-retry-mintimeout 20000 \
+ && npm config set fetch-retry-maxtimeout 120000 \
+ && sh -c 'for attempt in 1 2 3; do npm ci && exit 0; echo "npm ci failed (attempt ${attempt}/3), retrying..."; sleep $((attempt * 5)); done; exit 1'
 
 COPY . .
 RUN npm run build
