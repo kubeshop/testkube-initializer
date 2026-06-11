@@ -23,6 +23,6 @@ export function applyHaPreset(
     set("testkube-cloud-ui.replicaCount", "2");
     set("testkube-worker-service.replicaCount", "2");
   } else {
-    set("testkube-operator.replicaCount", "2");
+    set("testkube-api.replicaCount", "2");
   }
 }

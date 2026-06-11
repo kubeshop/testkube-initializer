@@ -107,8 +107,8 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       flavor: "both",
     },
     {
-      path: "testkube-operator.replicaCount",
-      label: "Operator replicas",
+      path: "testkube-api.replicaCount",
+      label: "API server replicas",
       type: "number",
       placeholder: "1",
       flavor: "oss",

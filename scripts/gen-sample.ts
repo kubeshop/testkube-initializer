@@ -58,7 +58,7 @@ const ossHa: TestkubeConfig = {
       "podAntiAffinity:\n  preferredDuringSchedulingIgnoredDuringExecution:\n    - weight: 100\n      podAffinityTerm:\n        topologyKey: kubernetes.io/hostname\n        labelSelector: {}",
     "global.tolerations":
       "- key: dedicated\n  operator: Equal\n  value: testkube\n  effect: NoSchedule",
-    "testkube-operator.replicaCount": "2",
+    "testkube-api.replicaCount": "2",
   },
 };
 

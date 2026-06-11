@@ -264,7 +264,6 @@ function buildOssValues(cfg: TestkubeConfig): Dict {
           : {}),
       },
     },
-    "testkube-operator": { enabled: true },
   };
 
   return prune(values);
