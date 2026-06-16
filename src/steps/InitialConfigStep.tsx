@@ -4,7 +4,7 @@ import { tipFor } from "../lib/tips";
 import { useSetHelp } from "../lib/helpContext";
 import type { EnvType, KubernetesType, LicenseMode } from "../types/config";
 import { isEnterprise } from "../types/config";
-import { labEndpointPatch, prodEndpointPatch } from "../lib/envPresets";
+import { labEndpointPatch, ossEndpointPatch, prodEndpointPatch } from "../lib/envPresets";
 import type { StepProps } from "./types";
 
 export default function InitialConfigStep({ config, update, setAdvanced }: StepProps) {
@@ -83,6 +83,8 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
                 update("endpoints", labEndpointPatch());
               } else if (v === "enterprise-prod") {
                 update("endpoints", prodEndpointPatch());
+              } else {
+                update("endpoints", ossEndpointPatch());
               }
             }}
             options={[
@@ -141,6 +143,7 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
         </Card>
       )}
 
+      {enterprise && (
       <Card title="Organizations / Environments">
         <div
           className="space-y-2"
@@ -194,6 +197,7 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
           </button>
         </div>
       </Card>
+      )}
 
       <CustomizePanel stepId="initial" config={config} setAdvanced={setAdvanced} />
     </div>

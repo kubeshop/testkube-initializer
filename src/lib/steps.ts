@@ -24,7 +24,7 @@ export const STEPS: StepMeta[] = [
       "For online licenses Testkube validates the key against the licensing service; offline licenses are mounted from a Kubernetes secret.",
     ],
     links: [
-      { label: "OSS vs Commercial", href: "https://testkube.io/get-started/oss-vs-commercial" },
+      { label: "OSS vs Commercial", href: "https://testkube.io/open-source-vs-commercial" },
       { label: "Installation overview", href: `${DOCS}/articles/install/overview` },
     ],
   },
@@ -47,7 +47,7 @@ export const STEPS: StepMeta[] = [
       "Use an external managed database in production, or let the chart deploy an in-cluster instance for labs.",
       "Connection strings can be auto-generated, set manually, or pulled from Vault.",
     ],
-    links: [{ label: "Database configuration", href: `${DOCS}/articles/install/configuration` }],
+    links: [{ label: "Database configuration", href: `${DOCS}/articles/install/advanced-install` }],
   },
   {
     id: "artifacts",
@@ -57,7 +57,7 @@ export const STEPS: StepMeta[] = [
       "Logs and test artifacts are stored in S3-compatible object storage.",
       "Pick SeaweedFS or MinIO for in-cluster storage, or AWS S3 / external endpoint for managed storage.",
     ],
-    links: [{ label: "Artifact storage", href: `${DOCS}/articles/artifacts-storage` }],
+    links: [{ label: "Artifact storage", href: `${DOCS}/articles/artifacts` }],
   },
   {
     id: "nats",
@@ -77,7 +77,7 @@ export const STEPS: StepMeta[] = [
       "Enterprise uses Dex as an identity broker in front of your IdP.",
       "Configure an OIDC / Google / GitHub / GitLab / LDAP connector and list the admin emails that get elevated access.",
     ],
-    links: [{ label: "Authentication & SSO", href: `${DOCS}/articles/install/authentication` }],
+    links: [{ label: "Authentication & SSO", href: `${DOCS}/articles/auth` }],
   },
   {
     id: "endpoints",
@@ -88,7 +88,7 @@ export const STEPS: StepMeta[] = [
       "Use Kubernetes Services for in-cluster integration instead of Ingress, and enable cert-manager to automate TLS.",
     ],
     links: [
-      { label: "Ingress & domains", href: `${DOCS}/articles/install/configuration` },
+      { label: "Ingress & domains", href: `${DOCS}/articles/install/advanced-install` },
       { label: "cert-manager", href: "https://cert-manager.io/docs/" },
     ],
   },

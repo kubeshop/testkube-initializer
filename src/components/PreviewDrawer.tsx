@@ -11,26 +11,21 @@ export default function PreviewDrawer({
   onToggle,
   validateActive = false,
   onDownloadYaml,
-  showExport = false,
-  exportDisabled = false,
-  exportDisabledReason,
 }: {
   config: TestkubeConfig;
   open: boolean;
   onToggle: () => void;
   validateActive?: boolean;
   onDownloadYaml: () => void;
-  showExport?: boolean;
-  exportDisabled?: boolean;
-  exportDisabledReason?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const yaml = useMemo(() => generateYaml(config), [config]);
   const lines = yaml.split("\n").length;
-  const errorCount = useMemo(
-    () => (validateActive ? validate(config).errors.length : 0),
-    [config, validateActive]
-  );
+  // The download must always reflect the real config state, even before the
+  // user reaches the Overview step — otherwise a broken default config could
+  // be exported from the live preview.
+  const realErrors = useMemo(() => validate(config).errors.length, [config]);
+  const badgeCount = validateActive ? realErrors : 0;
 
   const copy = async () => {
     await navigator.clipboard.writeText(yaml);
@@ -76,9 +71,9 @@ export default function PreviewDrawer({
           <span className="rounded-full bg-tk-purple-600/60 px-2 py-0.5 text-xs font-semibold text-tk-purple-100">
             {lines} lines
           </span>
-          {errorCount > 0 && (
+          {badgeCount > 0 && (
             <span className="rounded-full bg-tk-error px-2 py-0.5 text-xs font-bold text-white">
-              {errorCount} error{errorCount > 1 ? "s" : ""}
+              {badgeCount} error{badgeCount > 1 ? "s" : ""}
             </span>
           )}
         </button>
@@ -93,23 +88,12 @@ export default function PreviewDrawer({
           <button
             type="button"
             onClick={onDownloadYaml}
-            disabled={errorCount > 0}
-            title={errorCount > 0 ? `Resolve ${errorCount} error(s) to download` : undefined}
+            disabled={realErrors > 0}
+            title={realErrors > 0 ? `Resolve ${realErrors} error(s) to download` : undefined}
             className="rounded-full bg-tk-yellow px-3 py-1 text-xs font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Download
           </button>
-          {showExport && (
-            <button
-              type="button"
-              onClick={onDownloadYaml}
-              disabled={exportDisabled}
-              title={exportDisabled ? exportDisabledReason : undefined}
-              className="rounded-full bg-tk-yellow px-4 py-1 text-xs font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Export
-            </button>
-          )}
         </div>
       </div>
       {open && (

@@ -31,6 +31,17 @@ export function prodEndpointPatch(): Pick<
   };
 }
 
+/** Endpoint defaults when switching to OSS (no Enterprise TLS/cert assumptions). */
+export function ossEndpointPatch(): Pick<
+  TestkubeConfig["endpoints"],
+  "useKubernetesService" | "certManager"
+> {
+  return {
+    useKubernetesService: false,
+    certManager: false,
+  };
+}
+
 /** Build https/wss public URLs from domain + subdomains. */
 export function publicEndpointUrls(cfg: TestkubeConfig): {
   api: string;

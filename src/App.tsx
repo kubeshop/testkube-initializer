@@ -243,11 +243,6 @@ export default function App() {
         onToggle={() => setPreviewOpen((o) => !o)}
         validateActive={validationActive}
         onDownloadYaml={handleDownloadYaml}
-        showExport={!previewOpen}
-        exportDisabled={hasErrors}
-        exportDisabledReason={
-          hasErrors ? `Resolve ${validation.errors.length} error(s) to export` : undefined
-        }
       />
       <FeedbackModal
         open={feedbackOpen}
