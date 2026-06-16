@@ -11,12 +11,18 @@ export default function PreviewDrawer({
   onToggle,
   validateActive = false,
   onDownloadYaml,
+  showExport = false,
+  exportDisabled = false,
+  exportDisabledReason,
 }: {
   config: TestkubeConfig;
   open: boolean;
   onToggle: () => void;
   validateActive?: boolean;
   onDownloadYaml: () => void;
+  showExport?: boolean;
+  exportDisabled?: boolean;
+  exportDisabledReason?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const yaml = useMemo(() => generateYaml(config), [config]);
@@ -53,10 +59,10 @@ export default function PreviewDrawer({
       )}
       <div
         className={
-          "border-t border-tk-purple-600/50 " +
+          "fixed bottom-0 left-0 right-0 z-30 border-t border-tk-purple-600/50 bg-tk-purple-900 " +
           (open
-            ? "fixed bottom-0 left-0 right-0 z-30 bg-tk-purple-900 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
-            : "bg-tk-purple-900/95 backdrop-blur")
+            ? "shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
+            : "shadow-[0_-8px_32px_rgba(0,0,0,0.5)]")
         }
       >
       <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-6 py-2">
@@ -93,6 +99,17 @@ export default function PreviewDrawer({
           >
             Download
           </button>
+          {showExport && (
+            <button
+              type="button"
+              onClick={onDownloadYaml}
+              disabled={exportDisabled}
+              title={exportDisabled ? exportDisabledReason : undefined}
+              className="rounded-full bg-tk-yellow px-4 py-1 text-xs font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Export
+            </button>
+          )}
         </div>
       </div>
       {open && (

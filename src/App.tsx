@@ -97,7 +97,7 @@ export default function App() {
       </header>
 
       {/* Main 3-column layout */}
-      <main className="mx-auto grid w-full max-w-[1200px] flex-1 grid-cols-1 gap-5 p-5 lg:grid-cols-[220px_1fr_260px]">
+      <main className="mx-auto grid w-full max-w-[1200px] flex-1 grid-cols-1 gap-5 p-5 pb-20 lg:grid-cols-[220px_1fr_260px]">
         {/* Wizard nav */}
         <nav className="rounded-tk border border-tk-purple-600/60 bg-tk-purple-800/40 p-3">
           <h2 className="px-2 pb-2 pt-1 text-sm font-bold uppercase tracking-wide text-tk-purple-200">
@@ -237,42 +237,23 @@ export default function App() {
         </aside>
       </main>
 
-      {/* Sticky bottom: live YAML preview + actions */}
-      <div className="sticky bottom-0 z-30">
-        <PreviewDrawer
-          config={config}
-          open={previewOpen}
-          onToggle={() => setPreviewOpen((o) => !o)}
-          validateActive={validationActive}
-          onDownloadYaml={handleDownloadYaml}
-        />
-        <FeedbackModal
-          open={feedbackOpen}
-          onClose={() => setFeedbackOpen(false)}
-          config={config}
-        />
-        {!previewOpen && (
-        <footer className="border-t border-tk-purple-600/50 bg-black/40 px-6 py-4">
-          <div className="mx-auto flex max-w-[1200px] items-center justify-end gap-3">
-            {hasErrors && (
-              <span className="text-xs font-semibold text-tk-error">
-                {validation.errors.length} error
-                {validation.errors.length > 1 ? "s" : ""} to resolve before export
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={handleDownloadYaml}
-              disabled={hasErrors}
-              title={hasErrors ? `Resolve ${validation.errors.length} error(s) to export` : undefined}
-              className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Export
-            </button>
-          </div>
-        </footer>
-        )}
-      </div>
+      <PreviewDrawer
+        config={config}
+        open={previewOpen}
+        onToggle={() => setPreviewOpen((o) => !o)}
+        validateActive={validationActive}
+        onDownloadYaml={handleDownloadYaml}
+        showExport={!previewOpen}
+        exportDisabled={hasErrors}
+        exportDisabledReason={
+          hasErrors ? `Resolve ${validation.errors.length} error(s) to export` : undefined
+        }
+      />
+      <FeedbackModal
+        open={feedbackOpen}
+        onClose={() => setFeedbackOpen(false)}
+        config={config}
+      />
     </div>
     </HelpContext.Provider>
   );
