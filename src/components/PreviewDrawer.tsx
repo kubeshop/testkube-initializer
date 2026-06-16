@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { generateYaml } from "../lib/yaml";
 import { validate } from "../lib/validation";
 import type { TestkubeConfig } from "../types/config";
@@ -32,8 +32,33 @@ export default function PreviewDrawer({
     setTimeout(() => setCopied(false), 1500);
   };
 
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   return (
-    <div className="border-t border-tk-purple-600/50 bg-tk-purple-900/95 backdrop-blur">
+    <>
+      {open && (
+        <button
+          type="button"
+          aria-label="Close YAML preview"
+          onClick={onToggle}
+          className="fixed inset-0 z-20 bg-black/75 backdrop-blur-sm"
+        />
+      )}
+      <div
+        className={
+          "border-t border-tk-purple-600/50 " +
+          (open
+            ? "fixed bottom-0 left-0 right-0 z-30 bg-tk-purple-900 shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
+            : "bg-tk-purple-900/95 backdrop-blur")
+        }
+      >
       <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-6 py-2">
         <button
           type="button"
@@ -71,12 +96,13 @@ export default function PreviewDrawer({
         </div>
       </div>
       {open && (
-        <div className="mx-auto max-w-[1200px] px-6 pb-3">
-          <pre className="max-h-[260px] overflow-auto rounded-tk-md border border-tk-purple-600/60 bg-tk-purple-900 p-3 text-xs leading-relaxed text-tk-purple-100">
+        <div className="mx-auto max-w-[1200px] px-6 pb-4">
+          <pre className="max-h-[min(50vh,420px)] overflow-auto rounded-tk-md border border-tk-purple-600/60 bg-tk-purple-800 p-3 text-xs leading-relaxed text-tk-purple-100">
             <code>{yaml}</code>
           </pre>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

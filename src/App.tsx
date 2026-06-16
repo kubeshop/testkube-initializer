@@ -251,6 +251,7 @@ export default function App() {
           onClose={() => setFeedbackOpen(false)}
           config={config}
         />
+        {!previewOpen && (
         <footer className="border-t border-tk-purple-600/50 bg-black/40 px-6 py-4">
           <div className="mx-auto flex max-w-[1200px] items-center justify-end gap-3">
             {hasErrors && (
@@ -270,6 +271,7 @@ export default function App() {
             </button>
           </div>
         </footer>
+        )}
       </div>
     </div>
     </HelpContext.Provider>
