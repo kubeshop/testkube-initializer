@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { captureEvent } from "../lib/analytics";
 import { generateYaml } from "../lib/yaml";
 import { validate } from "../lib/validation";
 import type { TestkubeConfig } from "../types/config";
@@ -29,6 +30,7 @@ export default function PreviewDrawer({
 
   const copy = async () => {
     await navigator.clipboard.writeText(yaml);
+    captureEvent("yaml_copied", { env_type: config.initial.envType });
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };

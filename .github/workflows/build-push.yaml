@@ -71,6 +71,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            VITE_POSTHOG_KEY=${{ secrets.VITE_POSTHOG_KEY }}
+            VITE_POSTHOG_HOST=${{ secrets.VITE_POSTHOG_HOST }}
 
       - name: Summary
         if: always()

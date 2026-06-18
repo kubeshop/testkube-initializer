@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Logo from "./components/Logo";
+import { captureEvent } from "./lib/analytics";
 import { APP_VERSION, defaultConfig } from "./lib/defaults";
 import { STEPS } from "./lib/steps";
 import { downloadYaml } from "./lib/yaml";
@@ -38,12 +39,28 @@ export default function App() {
   // Validation stays dormant until the user reaches the Overview step, so the
   // wizard doesn't greet them with errors. Once activated it remains on.
   const [validationActive, setValidationActive] = useState(false);
+  const prevEnvType = useRef(config.initial.envType);
 
   // Reset the contextual help whenever the wizard step changes.
   useEffect(() => setFieldHelp(null), [active]);
   useEffect(() => {
     if (active === STEPS.length - 1) setValidationActive(true);
   }, [active]);
+
+  useEffect(() => {
+    const step = STEPS[active];
+    captureEvent("step_viewed", {
+      step: active + 1,
+      step_id: step.id,
+      env_type: config.initial.envType,
+    });
+  }, [active, config.initial.envType]);
+
+  useEffect(() => {
+    if (prevEnvType.current === config.initial.envType) return;
+    captureEvent("env_type_selected", { env_type: config.initial.envType });
+    prevEnvType.current = config.initial.envType;
+  }, [config.initial.envType]);
 
   const update = useCallback(
     <K extends keyof TestkubeConfig>(key: K, patch: Partial<TestkubeConfig[K]>) => {
@@ -60,6 +77,15 @@ export default function App() {
   }, []);
 
   const handleDownloadYaml = useCallback(() => {
+    const errorCount = validate(config).errors.length;
+    if (errorCount > 0) {
+      captureEvent("validation_blocked_export", {
+        env_type: config.initial.envType,
+        validation_errors: errorCount,
+      });
+      return;
+    }
+    captureEvent("yaml_downloaded", { env_type: config.initial.envType });
     downloadYaml(config);
     setFeedbackOpen(true);
   }, [config]);

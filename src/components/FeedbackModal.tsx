@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { captureEvent } from "../lib/analytics";
 import { APP_VERSION } from "../lib/defaults";
 import { submitFeedback, type FeedbackRating } from "../lib/feedback";
 import type { TestkubeConfig } from "../types/config";
@@ -44,6 +45,10 @@ export default function FeedbackModal({
     setSubmitting(true);
     try {
       await submitFeedback(config, rating, comment, APP_VERSION);
+      captureEvent("feedback_submitted", {
+        env_type: config.initial.envType,
+        helpful: rating === "yes",
+      });
       setPhase("thanks");
     } catch {
       setPhase("error");

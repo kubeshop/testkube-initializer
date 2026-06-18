@@ -11,6 +11,13 @@ RUN npm config set fetch-retries 5 \
  && npm config set fetch-retry-maxtimeout 120000 \
  && sh -c 'for attempt in 1 2 3; do npm ci && exit 0; echo "npm ci failed (attempt ${attempt}/3), retrying..."; sleep $((attempt * 5)); done; exit 1'
 
+ARG VITE_POSTHOG_KEY
+ARG VITE_POSTHOG_HOST
+ARG VITE_FEEDBACK_WEBHOOK_URL
+ENV VITE_POSTHOG_KEY=$VITE_POSTHOG_KEY
+ENV VITE_POSTHOG_HOST=$VITE_POSTHOG_HOST
+ENV VITE_FEEDBACK_WEBHOOK_URL=$VITE_FEEDBACK_WEBHOOK_URL
+
 COPY . .
 RUN npm run build
 
