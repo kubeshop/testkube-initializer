@@ -41,7 +41,7 @@ export default function App() {
   const [config, setConfig] = useState<TestkubeConfig>(defaultConfig);
   const [active, setActive] = useState(0);
   const [fieldHelp, setFieldHelp] = useState<FieldHelp | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(true);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [validationActive, setValidationActive] = useState(false);
   const prevEnvType = useRef(config.initial.envType);
