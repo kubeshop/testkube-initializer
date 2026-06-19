@@ -9,10 +9,12 @@ type Phase = "form" | "thanks" | "error";
 export default function FeedbackModal({
   open,
   onClose,
+  onSkip,
   config,
 }: {
   open: boolean;
   onClose: () => void;
+  onSkip?: () => void;
   config: TestkubeConfig;
 }) {
   const [rating, setRating] = useState<FeedbackRating | null>(null);
@@ -20,6 +22,13 @@ export default function FeedbackModal({
   const [phase, setPhase] = useState<Phase>("form");
   const [submitting, setSubmitting] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
+
+  const dismiss = (skipped: boolean) => {
+    if (skipped && phaseRef.current === "form") onSkip?.();
+    onClose();
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -32,7 +41,7 @@ export default function FeedbackModal({
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") dismiss(true);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -62,7 +71,7 @@ export default function FeedbackModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="presentation"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) dismiss(true);
       }}
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" aria-hidden />
@@ -126,7 +135,7 @@ export default function FeedbackModal({
             <div className="mt-6 flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => dismiss(true)}
                 className="rounded-full border border-tk-purple-400 px-4 py-2 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
               >
                 Skip

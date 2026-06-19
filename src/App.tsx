@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Logo from "./components/Logo";
-import { captureEvent } from "./lib/analytics";
+import { captureEvent, wizardSessionSeconds } from "./lib/analytics";
+import {
+  safeConfigSnapshot,
+  trackAdvancedFieldChange,
+  trackConfigUpdate,
+} from "./lib/analyticsConfig";
 import { APP_VERSION, defaultConfig } from "./lib/defaults";
 import { STEPS } from "./lib/steps";
 import { downloadYaml } from "./lib/yaml";
@@ -30,18 +35,26 @@ const STEP_COMPONENTS: ((p: StepProps) => JSX.Element)[] = [
   OverviewStep,
 ];
 
+type DownloadSource = "overview" | "preview_drawer";
+
 export default function App() {
   const [config, setConfig] = useState<TestkubeConfig>(defaultConfig);
   const [active, setActive] = useState(0);
   const [fieldHelp, setFieldHelp] = useState<FieldHelp | null>(null);
   const [previewOpen, setPreviewOpen] = useState(true);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  // Validation stays dormant until the user reaches the Overview step, so the
-  // wizard doesn't greet them with errors. Once activated it remains on.
   const [validationActive, setValidationActive] = useState(false);
   const prevEnvType = useRef(config.initial.envType);
+  const activeRef = useRef(active);
+  const configRef = useRef(config);
+  const wizardCompletedRef = useRef(false);
+  const validationShownRef = useRef(false);
 
-  // Reset the contextual help whenever the wizard step changes.
+  useEffect(() => {
+    activeRef.current = active;
+    configRef.current = config;
+  }, [active, config]);
+
   useEffect(() => setFieldHelp(null), [active]);
   useEffect(() => {
     if (active === STEPS.length - 1) setValidationActive(true);
@@ -62,33 +75,97 @@ export default function App() {
     prevEnvType.current = config.initial.envType;
   }, [config.initial.envType]);
 
+  useEffect(() => {
+    if (active !== STEPS.length - 1 || wizardCompletedRef.current) return;
+    wizardCompletedRef.current = true;
+    captureEvent("wizard_completed", {
+      env_type: config.initial.envType,
+      duration_seconds: wizardSessionSeconds(),
+    });
+  }, [active, config.initial.envType]);
+
+  useEffect(() => {
+    if (active !== STEPS.length - 1) return;
+    const errors = validate(config).errors;
+    if (errors.length === 0 || validationShownRef.current) return;
+    validationShownRef.current = true;
+    captureEvent("validation_errors_shown", {
+      error_count: errors.length,
+      step_ids: [...new Set(errors.map((e) => STEPS[e.step]?.id ?? String(e.step)))].join(","),
+      env_type: config.initial.envType,
+    });
+  }, [active, config]);
+
+  useEffect(() => {
+    const onLeave = () => {
+      captureEvent("wizard_abandoned", {
+        last_step_id: STEPS[activeRef.current].id,
+        last_step: activeRef.current + 1,
+        env_type: configRef.current.initial.envType,
+        duration_seconds: wizardSessionSeconds(),
+      });
+    };
+    window.addEventListener("pagehide", onLeave);
+    return () => window.removeEventListener("pagehide", onLeave);
+  }, []);
+
+  const navigateToStep = useCallback(
+    (next: number, via: "nav" | "next" | "back") => {
+      setActive((current) => {
+        if (next === current) return current;
+        const props = {
+          from_step_id: STEPS[current].id,
+          to_step_id: STEPS[next].id,
+          env_type: configRef.current.initial.envType,
+        };
+        if (via === "nav") captureEvent("step_jump_clicked", props);
+        if (via === "next") captureEvent("step_next_clicked", props);
+        if (via === "back") captureEvent("step_back_clicked", props);
+        return next;
+      });
+    },
+    []
+  );
+
   const update = useCallback(
     <K extends keyof TestkubeConfig>(key: K, patch: Partial<TestkubeConfig[K]>) => {
-      setConfig((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
+      setConfig((prev) => {
+        trackConfigUpdate(key, patch, prev);
+        return { ...prev, [key]: { ...prev[key], ...patch } };
+      });
     },
     []
   );
 
   const setAdvanced = useCallback((path: string, value: AdvancedScalar) => {
-    setConfig((prev) => ({
-      ...prev,
-      advanced: { ...prev.advanced, [path]: value },
-    }));
+    setConfig((prev) => {
+      trackAdvancedFieldChange(prev, path, STEPS[activeRef.current].id);
+      return {
+        ...prev,
+        advanced: { ...prev.advanced, [path]: value },
+      };
+    });
   }, []);
 
-  const handleDownloadYaml = useCallback(() => {
-    const errorCount = validate(config).errors.length;
-    if (errorCount > 0) {
-      captureEvent("validation_blocked_export", {
-        env_type: config.initial.envType,
-        validation_errors: errorCount,
-      });
-      return;
-    }
-    captureEvent("yaml_downloaded", { env_type: config.initial.envType });
-    downloadYaml(config);
-    setFeedbackOpen(true);
-  }, [config]);
+  const handleDownloadYaml = useCallback(
+    (source: DownloadSource = "overview") => {
+      const errorCount = validate(config).errors.length;
+      if (errorCount > 0) {
+        captureEvent("validation_blocked_export", {
+          env_type: config.initial.envType,
+          validation_errors: errorCount,
+          source,
+        });
+        return;
+      }
+      const snapshot = safeConfigSnapshot(config);
+      captureEvent("yaml_downloaded", { ...snapshot, source });
+      captureEvent("config_exported", { ...snapshot, source });
+      downloadYaml(config);
+      setFeedbackOpen(true);
+    },
+    [config]
+  );
 
   const meta = STEPS[active];
   const StepComponent = STEP_COMPONENTS[active];
@@ -106,7 +183,6 @@ export default function App() {
   return (
     <HelpContext.Provider value={setFieldHelp}>
     <div className="flex min-h-screen flex-col bg-tk-purple-900 text-white">
-      {/* Header */}
       <header className="flex items-center justify-between border-b border-tk-purple-600/50 bg-black/40 px-6 py-4 backdrop-blur">
         <div className="flex items-center gap-3">
           <Logo />
@@ -122,9 +198,7 @@ export default function App() {
         </span>
       </header>
 
-      {/* Main 3-column layout */}
       <main className="mx-auto grid w-full max-w-[1200px] flex-1 grid-cols-1 gap-5 p-5 pb-20 lg:grid-cols-[220px_1fr_260px]">
-        {/* Wizard nav */}
         <nav className="rounded-tk border border-tk-purple-600/60 bg-tk-purple-800/40 p-3">
           <h2 className="px-2 pb-2 pt-1 text-sm font-bold uppercase tracking-wide text-tk-purple-200">
             Wizard
@@ -136,7 +210,7 @@ export default function App() {
                 <li key={s.id}>
                   <button
                     type="button"
-                    onClick={() => setActive(i)}
+                    onClick={() => navigateToStep(i, "nav")}
                     className={
                       "flex w-full items-center gap-2 rounded-tk-md px-3 py-2 text-left text-sm transition " +
                       (isActive
@@ -170,7 +244,6 @@ export default function App() {
           </ol>
         </nav>
 
-        {/* Configuration panel */}
         <section className="flex flex-col">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-bold text-white">{meta.panelTitle}</h2>
@@ -180,16 +253,15 @@ export default function App() {
               config={config}
               update={update}
               setAdvanced={setAdvanced}
-              goToStep={setActive}
-              onDownloadYaml={handleDownloadYaml}
+              goToStep={(step) => navigateToStep(step, "nav")}
+              onDownloadYaml={() => handleDownloadYaml("overview")}
             />
           </div>
 
-          {/* Prev / Next */}
           <div className="mt-6 flex items-center justify-between">
             <button
               type="button"
-              onClick={() => setActive((a) => Math.max(0, a - 1))}
+              onClick={() => navigateToStep(Math.max(0, active - 1), "back")}
               disabled={active === 0}
               className="rounded-full border border-tk-purple-400 px-5 py-2 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20 disabled:opacity-30"
             >
@@ -198,7 +270,7 @@ export default function App() {
             {isLast ? (
               <button
                 type="button"
-                onClick={handleDownloadYaml}
+                onClick={() => handleDownloadYaml("overview")}
                 disabled={hasErrors}
                 title={hasErrors ? `Resolve ${validation.errors.length} error(s) to export` : undefined}
                 className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
@@ -208,7 +280,7 @@ export default function App() {
             ) : (
               <button
                 type="button"
-                onClick={() => setActive((a) => Math.min(STEPS.length - 1, a + 1))}
+                onClick={() => navigateToStep(Math.min(STEPS.length - 1, active + 1), "next")}
                 className="rounded-full bg-tk-purple-500 px-6 py-2 text-sm font-bold text-white transition hover:bg-tk-purple-400"
               >
                 Next →
@@ -217,7 +289,6 @@ export default function App() {
           </div>
         </section>
 
-        {/* Help panel */}
         <aside className="self-start rounded-tk border border-tk-purple-600/60 bg-tk-purple-800/40 p-4 lg:sticky lg:top-5">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-tk-purple-200">
             Helpful links & explanations
@@ -266,13 +337,24 @@ export default function App() {
       <PreviewDrawer
         config={config}
         open={previewOpen}
-        onToggle={() => setPreviewOpen((o) => !o)}
+        onToggle={() => {
+          setPreviewOpen((o) => {
+            captureEvent("preview_drawer_toggled", {
+              open: !o,
+              env_type: config.initial.envType,
+            });
+            return !o;
+          });
+        }}
         validateActive={validationActive}
-        onDownloadYaml={handleDownloadYaml}
+        onDownloadYaml={() => handleDownloadYaml("preview_drawer")}
       />
       <FeedbackModal
         open={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
+        onSkip={() =>
+          captureEvent("feedback_skipped", { env_type: config.initial.envType })
+        }
         config={config}
       />
     </div>

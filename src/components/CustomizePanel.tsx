@@ -1,3 +1,4 @@
+import { captureEvent } from "../lib/analytics";
 import { useState } from "react";
 import { parse } from "yaml";
 import { Field, Select, TextInput, Toggle } from "./ui";
@@ -109,7 +110,17 @@ export default function CustomizePanel({
     <div className="rounded-tk border border-dashed border-tk-purple-500/50 bg-tk-purple-900/30">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          setOpen((o) => {
+            if (!o) {
+              captureEvent("advanced_panel_opened", {
+                step_id: stepId,
+                env_type: config.initial.envType,
+              });
+            }
+            return !o;
+          });
+        }}
         className="flex w-full items-center justify-between gap-2 px-5 py-3 text-left"
       >
         <span className="flex items-center gap-2 text-sm font-bold text-tk-purple-100">

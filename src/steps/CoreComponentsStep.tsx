@@ -1,5 +1,6 @@
 import { Card, Toggle } from "../components/ui";
 import CustomizePanel from "../components/CustomizePanel";
+import { captureEvent } from "../lib/analytics";
 import { applyHaPreset } from "../lib/presets";
 import { isEnterprise } from "../types/config";
 import type { StepProps } from "./types";
@@ -61,7 +62,10 @@ export default function CoreComponentsStep({ config, update, setAdvanced }: Step
           </p>
           <button
             type="button"
-            onClick={() => applyHaPreset(config, setAdvanced)}
+            onClick={() => {
+              applyHaPreset(config, setAdvanced);
+              captureEvent("ha_preset_applied", { env_type: config.initial.envType });
+            }}
             className="flex-shrink-0 rounded-full bg-tk-pink px-4 py-2 text-sm font-bold text-black transition hover:brightness-95"
           >
             Apply HA preset

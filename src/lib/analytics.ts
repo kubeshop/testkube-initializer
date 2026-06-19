@@ -3,6 +3,12 @@ import posthog from "posthog-js";
 import { APP_VERSION } from "./defaults";
 
 let enabled = false;
+let wizardOpenedAt: number | null = null;
+
+export function wizardSessionSeconds(): number | undefined {
+  if (wizardOpenedAt === null) return undefined;
+  return Math.round((Date.now() - wizardOpenedAt) / 1000);
+}
 
 /** Safe properties only — never send license keys, DSNs, emails, or YAML. */
 export type AnalyticsProps = Record<string, string | number | boolean | undefined>;
@@ -21,6 +27,7 @@ export function initAnalytics(): void {
     person_profiles: "identified_only",
   });
   enabled = true;
+  wizardOpenedAt = Date.now();
   captureEvent("wizard_opened");
 }
 
