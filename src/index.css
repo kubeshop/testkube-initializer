@@ -4,6 +4,7 @@
 
 :root {
   color-scheme: dark;
+  --tk-nav-height: 4.85rem;
 }
 
 html,
@@ -20,19 +21,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Official testkube.io gradient (.u-gradient-1) */
+/* testkube.io: black nav + purple-900 page body (pricing uses solid, not gradient) */
 .tk-site-bg {
   background-color: #160f31;
-  background-image: radial-gradient(circle at 4% 100%, #5130c4, #160f31);
 }
 
 @layer components {
   .tk-panel {
-    @apply rounded-tk border border-tk-purple-200/20 bg-tk-surface/80 shadow-panel backdrop-blur-sm;
+    @apply rounded-tk border border-tk-purple-200/20 bg-tk-purple-800/80 shadow-panel backdrop-blur-sm;
   }
 
   .tk-panel-muted {
-    @apply rounded-tk-md border border-tk-purple-200/15 bg-tk-sidebar/70;
+    @apply rounded-tk-md border border-tk-purple-200/15 bg-tk-purple-700/70;
   }
 
   .tk-btn-demo {
@@ -40,7 +40,7 @@ body {
   }
 
   .tk-btn-outline {
-    @apply rounded-full border border-tk-purple-200/50 bg-transparent px-5 py-2 text-sm font-semibold text-white transition hover:border-tk-purple-200 hover:bg-tk-purple-500/20 disabled:cursor-not-allowed disabled:opacity-30;
+    @apply rounded-full border border-tk-yellow bg-black px-5 py-2 text-sm font-semibold text-white transition hover:bg-tk-yellow hover:text-black disabled:cursor-not-allowed disabled:opacity-30;
   }
 
   .tk-btn-ghost {
@@ -53,6 +53,18 @@ body {
 
   .tk-muted {
     @apply text-tk-purple-200/80;
+  }
+
+  .tk-site-header__btn {
+    @apply inline-flex items-center justify-center rounded-full border-2 px-6 py-[0.7rem] text-base font-normal leading-[1.2] transition;
+  }
+
+  .tk-site-header__btn--primary {
+    @apply border-tk-yellow bg-tk-yellow text-black hover:brightness-95;
+  }
+
+  .tk-site-header__btn--outline {
+    @apply border-tk-yellow bg-transparent text-white hover:bg-tk-yellow/25;
   }
 }
 

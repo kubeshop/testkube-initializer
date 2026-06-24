@@ -29,7 +29,7 @@ export function Field({
 }
 
 const inputBase =
-  "w-full rounded-tk-md border border-tk-purple-200/20 bg-tk-sidebar/80 px-4 py-2.5 text-sm text-white placeholder:text-tk-purple-200/40 outline-none transition focus:border-tk-purple-400 focus:ring-2 focus:ring-tk-purple-500/30";
+  "w-full rounded-tk-md border border-tk-purple-200/20 bg-tk-purple-700/80 px-4 py-2.5 text-sm text-white placeholder:text-tk-purple-200/40 outline-none transition focus:border-tk-purple-500 focus:ring-2 focus:ring-tk-purple-500/30";
 
 export function TextInput(
   props: React.InputHTMLAttributes<HTMLInputElement>
@@ -75,7 +75,7 @@ export function SegmentedControl<T extends string>({
   options: { value: T; label: string }[];
 }) {
   return (
-    <div className="inline-flex flex-wrap gap-1 rounded-tk-md border border-tk-purple-200/20 bg-tk-sidebar/80 p-1">
+    <div className="inline-flex flex-wrap gap-1 rounded-tk-md border border-tk-purple-200/20 bg-tk-purple-700/80 p-1">
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -126,7 +126,7 @@ export function Toggle({
         "flex w-full items-center justify-between gap-4 rounded-tk-md border px-4 py-3 text-left transition " +
         (checked
           ? "border-tk-yellow/60 bg-tk-yellow/10"
-          : "border-tk-purple-200/20 bg-tk-sidebar/50 hover:border-tk-purple-200/35")
+          : "border-tk-purple-200/20 bg-tk-purple-700/50 hover:border-tk-purple-200/35")
       }
     >
       <span>

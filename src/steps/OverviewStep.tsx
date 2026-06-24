@@ -154,7 +154,7 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
           <button
             type="button"
             onClick={copy}
-            className="rounded-full border border-tk-purple-400 px-4 py-1.5 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
+            className="rounded-full border border-tk-purple-500 px-4 py-1.5 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
           >
             {copied ? "Copied!" : "Copy"}
           </button>

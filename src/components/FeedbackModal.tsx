@@ -128,7 +128,7 @@ export default function FeedbackModal({
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Missing options, confusing steps, deployment issues…"
-                className="w-full resize-y rounded-tk-md border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-tk-purple-400/80 focus:ring-2 focus:ring-tk-purple-500/30"
+                className="w-full resize-y rounded-tk-md border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-tk-purple-500/80 focus:ring-2 focus:ring-tk-purple-500/30"
               />
             </label>
 

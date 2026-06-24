@@ -50,7 +50,7 @@ function AdvancedFieldInput({
           placeholder={def.placeholder}
           value={text}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full resize-y rounded-tk-md border border-white/10 bg-black/30 px-4 py-2.5 font-mono text-xs text-white placeholder:text-white/35 outline-none transition focus:border-tk-purple-400/80 focus:ring-2 focus:ring-tk-purple-500/30"
+          className="w-full resize-y rounded-tk-md border border-white/10 bg-black/30 px-4 py-2.5 font-mono text-xs text-white placeholder:text-white/35 outline-none transition focus:border-tk-purple-500/80 focus:ring-2 focus:ring-tk-purple-500/30"
         />
         {error && (
           <span className="mt-1 block text-xs text-tk-error">
@@ -107,7 +107,7 @@ export default function CustomizePanel({
   }).length;
 
   return (
-    <div className="rounded-tk border border-dashed border-tk-purple-200/25 bg-tk-sidebar/40">
+    <div className="rounded-tk border border-dashed border-tk-purple-200/25 bg-tk-purple-700/40">
       <button
         type="button"
         onClick={() => {

@@ -67,7 +67,7 @@ export default function PreviewDrawer({
           >
             <span className="text-white/50">{open ? "▾" : "▸"}</span>
             Live <span className="text-tk-pink">values.yaml</span>
-            <span className="rounded-full border border-tk-purple-200/20 bg-tk-surface/60 px-2 py-0.5 text-xs font-semibold text-tk-purple-200/80">
+            <span className="rounded-full border border-tk-purple-200/20 bg-tk-purple-800/60 px-2 py-0.5 text-xs font-semibold text-tk-purple-200/80">
               {lines} lines
             </span>
             {badgeCount > 0 && (
@@ -93,7 +93,7 @@ export default function PreviewDrawer({
         </div>
         {open && (
           <div className="mx-auto max-w-[1200px] px-6 pb-4">
-            <pre className="max-h-[min(50vh,420px)] overflow-auto rounded-tk-md border border-tk-purple-200/20 bg-tk-sidebar/90 p-3 text-xs leading-relaxed text-tk-purple-200/90">
+            <pre className="max-h-[min(50vh,420px)] overflow-auto rounded-tk-md border border-tk-purple-200/20 bg-tk-purple-700/90 p-3 text-xs leading-relaxed text-tk-purple-200/90">
               <code>{yaml}</code>
             </pre>
           </div>

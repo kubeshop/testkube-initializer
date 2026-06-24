@@ -190,11 +190,11 @@ export default function App() {
           Helm values generator
         </p>
         <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-          Configure your <span className="text-tk-pink">Testkube</span> deployment
+          Configure your <span className="text-tk-purple-200">Testkube</span> deployment
         </h1>
         <p className="mx-auto mt-2 max-w-xl text-sm text-tk-purple-200/75">
           Generate a ready-to-use <code className="text-tk-yellow">values.yaml</code> for OSS or
-          Enterprise — same workflow, same brand experience as testkube.io.
+          Enterprise.
         </p>
       </div>
 
@@ -289,7 +289,7 @@ export default function App() {
           </div>
         </section>
 
-        <aside className="tk-panel self-start p-4 lg:sticky lg:top-[4.5rem]">
+        <aside className="tk-panel self-start p-4 lg:sticky lg:top-[var(--tk-nav-height)]">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-tk-purple-200/70">
             Helpful links & explanations
           </h2>
