@@ -12,7 +12,7 @@ export default function CoreComponentsStep({ config, update, setAdvanced }: Step
     <div className="space-y-5">
       <Card title="Core Components">
         {!enterprise && (
-          <p className="mb-4 rounded-tk-md border border-tk-purple-400/40 bg-tk-purple-500/10 px-4 py-3 text-sm text-tk-purple-100/90">
+          <p className="mb-4 rounded-tk-md border border-white/10 bg-tk-yellow/10 px-4 py-3 text-sm text-white/80">
             OSS deploys the agent (API) and optional dashboard. Worker Service and AI
             are <strong className="text-white">Enterprise-only</strong> components.
           </p>
@@ -55,7 +55,7 @@ export default function CoreComponentsStep({ config, update, setAdvanced }: Step
 
       <Card title="High availability">
         <div className="flex items-center justify-between gap-4">
-          <p className="text-sm text-tk-purple-200/80">
+          <p className="text-sm text-white/60">
             Apply an HA baseline: PodDisruptionBudgets, 2 replicas for stateless
             components, and pod anti-affinity. You can fine-tune it in the
             Customize panels below.
@@ -66,7 +66,7 @@ export default function CoreComponentsStep({ config, update, setAdvanced }: Step
               applyHaPreset(config, setAdvanced);
               captureEvent("ha_preset_applied", { env_type: config.initial.envType });
             }}
-            className="flex-shrink-0 rounded-full bg-tk-pink px-4 py-2 text-sm font-bold text-black transition hover:brightness-95"
+            className="flex-shrink-0 rounded-full bg-tk-yellow px-4 py-2 text-sm font-bold text-tk-ink transition hover:bg-transparent hover:text-tk-yellow hover:ring-2 hover:ring-tk-yellow"
           >
             Apply HA preset
           </button>

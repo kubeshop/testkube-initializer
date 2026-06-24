@@ -67,7 +67,7 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
               <button
                 type="button"
                 onClick={() => goToStep(it.step)}
-                className="flex-shrink-0 rounded-full border border-tk-purple-400 px-2.5 py-0.5 text-[11px] font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
+                className="tk-btn-outline flex-shrink-0 px-2.5 py-0.5 text-[11px]"
               >
                 {STEPS[it.step].title} →
               </button>
@@ -119,7 +119,7 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
             <button
               type="button"
               onClick={() => downloadSecrets(config)}
-              className="rounded-full border border-tk-purple-400 px-4 py-1.5 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
+              className="tk-btn-outline px-4 py-1.5 text-sm"
             >
               Download secrets.yaml template
             </button>
@@ -168,7 +168,7 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
             Download
           </button>
         </div>
-        <pre className="max-h-[420px] overflow-auto rounded-tk-md border border-tk-purple-600/60 bg-tk-purple-900 p-4 text-xs leading-relaxed text-tk-purple-100">
+        <pre className="max-h-[420px] overflow-auto rounded-tk-md border border-white/10 bg-black/40 p-4 text-xs leading-relaxed text-white/85">
           <code>{yaml}</code>
         </pre>
         <p className="text-xs text-tk-purple-200/70">

@@ -23,13 +23,13 @@ export function Field({
         {label}
       </span>
       {children}
-      {hint && <span className="mt-1.5 block text-xs text-tk-purple-200/70">{hint}</span>}
+      {hint && <span className="mt-1.5 block text-xs text-white/50">{hint}</span>}
     </label>
   );
 }
 
 const inputBase =
-  "w-full rounded-tk-md border border-tk-purple-600 bg-tk-purple-900/60 px-4 py-2.5 text-sm text-white placeholder:text-tk-purple-200/40 outline-none transition focus:border-tk-purple-400 focus:ring-2 focus:ring-tk-purple-500/40";
+  "w-full rounded-tk-md border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-tk-purple-400/80 focus:ring-2 focus:ring-tk-purple-500/30";
 
 export function TextInput(
   props: React.InputHTMLAttributes<HTMLInputElement>
@@ -57,7 +57,7 @@ export function Select({
       }}
     >
       {options.map((o) => (
-        <option key={o.value} value={o.value} className="bg-tk-purple-900">
+        <option key={o.value} value={o.value} className="bg-tk-ink">
           {o.label}
         </option>
       ))}
@@ -75,7 +75,7 @@ export function SegmentedControl<T extends string>({
   options: { value: T; label: string }[];
 }) {
   return (
-    <div className="inline-flex flex-wrap gap-1 rounded-tk-md border border-tk-purple-600 bg-tk-purple-900/60 p-1">
+    <div className="inline-flex flex-wrap gap-1 rounded-tk-md border border-white/10 bg-black/30 p-1">
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -86,8 +86,8 @@ export function SegmentedControl<T extends string>({
             className={
               "rounded-[0.45rem] px-4 py-1.5 text-sm font-semibold transition " +
               (active
-                ? "bg-tk-purple-500 text-white shadow-tk"
-                : "text-tk-purple-200 hover:bg-tk-purple-600/50")
+                ? "bg-tk-yellow text-tk-ink shadow-sm"
+                : "text-white/70 hover:bg-white/10 hover:text-white")
             }
           >
             {o.label}
@@ -125,14 +125,14 @@ export function Toggle({
       className={
         "flex w-full items-center justify-between gap-4 rounded-tk-md border px-4 py-3 text-left transition " +
         (checked
-          ? "border-tk-purple-400 bg-tk-purple-500/15"
-          : "border-tk-purple-600 bg-tk-purple-900/40 hover:border-tk-purple-400/60")
+          ? "border-tk-yellow/50 bg-tk-yellow/10"
+          : "border-white/10 bg-black/20 hover:border-white/20")
       }
     >
       <span>
         <span className="block text-sm font-semibold text-white">{label}</span>
         {description && (
-          <span className="mt-0.5 block text-xs text-tk-purple-200/70">
+          <span className="mt-0.5 block text-xs text-white/50">
             {description}
           </span>
         )}
@@ -140,12 +140,12 @@ export function Toggle({
       <span
         className={
           "relative h-6 w-11 flex-shrink-0 rounded-full transition " +
-          (checked ? "bg-tk-purple-500" : "bg-tk-purple-700")
+          (checked ? "bg-tk-yellow" : "bg-white/20")
         }
       >
         <span
           className={
-            "absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all " +
+            "absolute top-0.5 h-5 w-5 rounded-full bg-tk-ink transition-all " +
             (checked ? "left-[1.375rem]" : "left-0.5")
           }
         />
@@ -162,9 +162,9 @@ export function Card({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-tk border border-tk-purple-600/60 bg-tk-purple-800/40 p-5">
+    <div className="tk-panel p-5">
       {title && (
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-tk-purple-200">
+        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-white/60">
           {title}
         </h3>
       )}

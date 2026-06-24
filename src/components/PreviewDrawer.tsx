@@ -22,9 +22,6 @@ export default function PreviewDrawer({
   const [copied, setCopied] = useState(false);
   const yaml = useMemo(() => generateYaml(config), [config]);
   const lines = yaml.split("\n").length;
-  // The download must always reflect the real config state, even before the
-  // user reaches the Overview step — otherwise a broken default config could
-  // be exported from the live preview.
   const realErrors = useMemo(() => validate(config).errors.length, [config]);
   const badgeCount = validateActive ? realErrors : 0;
 
@@ -51,60 +48,56 @@ export default function PreviewDrawer({
           type="button"
           aria-label="Close YAML preview"
           onClick={onToggle}
-          className="fixed inset-0 z-20 bg-black/75 backdrop-blur-sm"
+          className="fixed inset-0 z-20 bg-black/80 backdrop-blur-sm"
         />
       )}
       <div
         className={
-          "fixed bottom-0 left-0 right-0 z-30 border-t border-tk-purple-600/50 bg-tk-purple-900 " +
+          "fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-tk-ink/95 backdrop-blur-xl " +
           (open
-            ? "shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
+            ? "shadow-[0_-16px_48px_rgba(0,0,0,0.65)]"
             : "shadow-[0_-8px_32px_rgba(0,0,0,0.5)]")
         }
       >
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-6 py-2">
-        <button
-          type="button"
-          onClick={onToggle}
-          className="flex items-center gap-2 text-sm font-bold text-tk-purple-100"
-        >
-          <span className="text-tk-purple-200">{open ? "▾" : "▸"}</span>
-          Live <span className="text-tk-pink">values.yaml</span>
-          <span className="rounded-full bg-tk-purple-600/60 px-2 py-0.5 text-xs font-semibold text-tk-purple-100">
-            {lines} lines
-          </span>
-          {badgeCount > 0 && (
-            <span className="rounded-full bg-tk-error px-2 py-0.5 text-xs font-bold text-white">
-              {badgeCount} error{badgeCount > 1 ? "s" : ""}
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-6 py-2">
+          <button
+            type="button"
+            onClick={onToggle}
+            className="flex items-center gap-2 text-sm font-bold text-white"
+          >
+            <span className="text-white/50">{open ? "▾" : "▸"}</span>
+            Live <span className="text-tk-pink">values.yaml</span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs font-semibold text-white/70">
+              {lines} lines
             </span>
-          )}
-        </button>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={copy}
-            className="rounded-full border border-tk-purple-400 px-3 py-1 text-xs font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
-          >
-            {copied ? "Copied!" : "Copy"}
+            {badgeCount > 0 && (
+              <span className="rounded-full bg-tk-error px-2 py-0.5 text-xs font-bold text-white">
+                {badgeCount} error{badgeCount > 1 ? "s" : ""}
+              </span>
+            )}
           </button>
-          <button
-            type="button"
-            onClick={onDownloadYaml}
-            disabled={realErrors > 0}
-            title={realErrors > 0 ? `Resolve ${realErrors} error(s) to download` : undefined}
-            className="rounded-full bg-tk-yellow px-3 py-1 text-xs font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Download
-          </button>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={copy} className="tk-btn-outline px-3 py-1 text-xs">
+              {copied ? "Copied!" : "Copy"}
+            </button>
+            <button
+              type="button"
+              onClick={onDownloadYaml}
+              disabled={realErrors > 0}
+              title={realErrors > 0 ? `Resolve ${realErrors} error(s) to download` : undefined}
+              className="tk-btn-demo px-3 py-1 text-xs"
+            >
+              Download
+            </button>
+          </div>
         </div>
-      </div>
-      {open && (
-        <div className="mx-auto max-w-[1200px] px-6 pb-4">
-          <pre className="max-h-[min(50vh,420px)] overflow-auto rounded-tk-md border border-tk-purple-600/60 bg-tk-purple-800 p-3 text-xs leading-relaxed text-tk-purple-100">
-            <code>{yaml}</code>
-          </pre>
-        </div>
-      )}
+        {open && (
+          <div className="mx-auto max-w-[1200px] px-6 pb-4">
+            <pre className="max-h-[min(50vh,420px)] overflow-auto rounded-tk-md border border-white/10 bg-black/40 p-3 text-xs leading-relaxed text-white/85">
+              <code>{yaml}</code>
+            </pre>
+          </div>
+        )}
       </div>
     </>
   );

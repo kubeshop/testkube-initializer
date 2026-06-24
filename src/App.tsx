@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Logo from "./components/Logo";
+import SiteHeader from "./components/SiteHeader";
 import { captureEvent, wizardSessionSeconds } from "./lib/analytics";
 import {
   safeConfigSnapshot,
   trackAdvancedFieldChange,
   trackConfigUpdate,
 } from "./lib/analyticsConfig";
-import { APP_VERSION, defaultConfig } from "./lib/defaults";
+import { defaultConfig } from "./lib/defaults";
 import { STEPS } from "./lib/steps";
 import { downloadYaml } from "./lib/yaml";
 import { HelpContext, type FieldHelp } from "./lib/helpContext";
@@ -182,25 +182,25 @@ export default function App() {
 
   return (
     <HelpContext.Provider value={setFieldHelp}>
-    <div className="flex min-h-screen flex-col bg-tk-purple-900 text-white">
-      <header className="flex items-center justify-between border-b border-tk-purple-600/50 bg-black/40 px-6 py-4 backdrop-blur">
-        <div className="flex items-center gap-3">
-          <Logo />
-          <div>
-            <h1 className="text-lg font-extrabold leading-none">
-              Testkube <span className="text-tk-pink">Initializer</span>
-            </h1>
-            <p className="text-xs text-tk-purple-200/70">Helm values generator</p>
-          </div>
-        </div>
-        <span className="rounded-full border border-tk-yellow/60 bg-tk-yellow/10 px-3 py-1 text-xs font-bold text-tk-yellow">
-          Version: {APP_VERSION}
-        </span>
-      </header>
+    <div className="tk-site-bg flex min-h-screen flex-col text-white">
+      <SiteHeader />
 
-      <main className="mx-auto grid w-full max-w-[1200px] flex-1 grid-cols-1 gap-5 p-5 pb-20 lg:grid-cols-[220px_1fr_260px]">
-        <nav className="rounded-tk border border-tk-purple-600/60 bg-tk-purple-800/40 p-3">
-          <h2 className="px-2 pb-2 pt-1 text-sm font-bold uppercase tracking-wide text-tk-purple-200">
+      <div className="border-b border-white/5 px-5 py-6 text-center lg:px-6">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/45">
+          Helm values generator
+        </p>
+        <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+          Configure your <span className="text-tk-pink">Testkube</span> deployment
+        </h1>
+        <p className="mx-auto mt-2 max-w-xl text-sm text-white/60">
+          Generate a ready-to-use <code className="text-tk-yellow">values.yaml</code> for OSS or
+          Enterprise — same workflow, same brand experience as testkube.io.
+        </p>
+      </div>
+
+      <main className="mx-auto grid w-full max-w-[1200px] flex-1 grid-cols-1 gap-5 px-5 pb-20 pt-2 lg:grid-cols-[220px_1fr_260px] lg:px-6">
+        <nav className="tk-panel p-3">
+          <h2 className="px-2 pb-2 pt-1 text-sm font-bold uppercase tracking-wide text-white/50">
             Wizard
           </h2>
           <ol className="space-y-1">
@@ -214,16 +214,16 @@ export default function App() {
                     className={
                       "flex w-full items-center gap-2 rounded-tk-md px-3 py-2 text-left text-sm transition " +
                       (isActive
-                        ? "bg-tk-purple-500 font-semibold text-white shadow-tk"
-                        : "text-tk-purple-200 hover:bg-tk-purple-600/40")
+                        ? "bg-tk-yellow font-bold text-tk-ink shadow-sm"
+                        : "text-white/70 hover:bg-white/10 hover:text-white")
                     }
                   >
                     <span
                       className={
                         "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold " +
                         (isActive
-                          ? "bg-white text-tk-purple-600"
-                          : "bg-tk-purple-700 text-tk-purple-200")
+                          ? "bg-tk-ink text-tk-yellow"
+                          : "bg-white/10 text-white/70")
                       }
                     >
                       {i + 1}
@@ -244,7 +244,7 @@ export default function App() {
           </ol>
         </nav>
 
-        <section className="flex flex-col">
+        <section className="tk-panel flex flex-col p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-bold text-white">{meta.panelTitle}</h2>
           </div>
@@ -258,12 +258,12 @@ export default function App() {
             />
           </div>
 
-          <div className="mt-6 flex items-center justify-between">
+          <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-5">
             <button
               type="button"
               onClick={() => navigateToStep(Math.max(0, active - 1), "back")}
               disabled={active === 0}
-              className="rounded-full border border-tk-purple-400 px-5 py-2 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20 disabled:opacity-30"
+              className="tk-btn-outline"
             >
               ← Back
             </button>
@@ -273,7 +273,7 @@ export default function App() {
                 onClick={() => handleDownloadYaml("overview")}
                 disabled={hasErrors}
                 title={hasErrors ? `Resolve ${validation.errors.length} error(s) to export` : undefined}
-                className="rounded-full bg-tk-yellow px-6 py-2 text-sm font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
+                className="tk-btn-demo"
               >
                 Export values.yaml
               </button>
@@ -281,7 +281,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => navigateToStep(Math.min(STEPS.length - 1, active + 1), "next")}
-                className="rounded-full bg-tk-purple-500 px-6 py-2 text-sm font-bold text-white transition hover:bg-tk-purple-400"
+                className="tk-btn-demo"
               >
                 Next →
               </button>
@@ -289,42 +289,42 @@ export default function App() {
           </div>
         </section>
 
-        <aside className="self-start rounded-tk border border-tk-purple-600/60 bg-tk-purple-800/40 p-4 lg:sticky lg:top-5">
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-tk-purple-200">
+        <aside className="tk-panel self-start p-4 lg:sticky lg:top-[4.5rem]">
+          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-white/50">
             Helpful links & explanations
           </h2>
 
           {fieldHelp && (
-            <div className="mb-4 rounded-tk-md border border-tk-purple-400/50 bg-tk-purple-500/10 p-3">
+            <div className="mb-4 rounded-tk-md border border-white/10 bg-tk-yellow/10 p-3">
               <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-tk-pink">
                 Field
               </p>
               <h3 className="text-sm font-bold text-white">{fieldHelp.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-tk-purple-100/90">
+              <p className="mt-1 text-sm leading-relaxed text-white/80">
                 {fieldHelp.body || "No additional guidance for this field."}
               </p>
               {fieldHelp.path && (
-                <code className="mt-2 block break-all text-xs text-tk-purple-200/80">
+                <code className="mt-2 block break-all text-xs text-white/50">
                   {fieldHelp.path}
                 </code>
               )}
             </div>
           )}
 
-          <div className="space-y-3 text-sm leading-relaxed text-tk-purple-100/90">
+          <div className="space-y-3 text-sm leading-relaxed text-white/75">
             {meta.help.map((h, i) => (
               <p key={i}>{h}</p>
             ))}
           </div>
           {meta.links.length > 0 && (
-            <div className="mt-4 space-y-2 border-t border-tk-purple-600/40 pt-4">
+            <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
               {meta.links.map((l) => (
                 <a
                   key={l.href}
                   href={l.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="block text-sm font-semibold text-tk-pink hover:underline"
+                  className="tk-link block text-sm"
                 >
                   → {l.label}
                 </a>

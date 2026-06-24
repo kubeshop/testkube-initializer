@@ -50,7 +50,7 @@ function AdvancedFieldInput({
           placeholder={def.placeholder}
           value={text}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full resize-y rounded-tk-md border border-tk-purple-600 bg-tk-purple-900/60 px-4 py-2.5 font-mono text-xs text-white placeholder:text-tk-purple-200/40 outline-none transition focus:border-tk-purple-400 focus:ring-2 focus:ring-tk-purple-500/40"
+          className="w-full resize-y rounded-tk-md border border-white/10 bg-black/30 px-4 py-2.5 font-mono text-xs text-white placeholder:text-white/35 outline-none transition focus:border-tk-purple-400/80 focus:ring-2 focus:ring-tk-purple-500/30"
         />
         {error && (
           <span className="mt-1 block text-xs text-tk-error">
@@ -107,7 +107,7 @@ export default function CustomizePanel({
   }).length;
 
   return (
-    <div className="rounded-tk border border-dashed border-tk-purple-500/50 bg-tk-purple-900/30">
+    <div className="rounded-tk border border-dashed border-white/15 bg-black/20">
       <button
         type="button"
         onClick={() => {
@@ -123,22 +123,22 @@ export default function CustomizePanel({
         }}
         className="flex w-full items-center justify-between gap-2 px-5 py-3 text-left"
       >
-        <span className="flex items-center gap-2 text-sm font-bold text-tk-purple-100">
+        <span className="flex items-center gap-2 text-sm font-bold text-white/90">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
             <path d="M11.5 2a1 1 0 00-1 1v1.07a6 6 0 00-1.6.66l-.76-.76a1 1 0 00-1.41 0l-1.06 1.06a1 1 0 000 1.41l.76.76c-.29.5-.51 1.04-.66 1.6H4a1 1 0 00-1 1v1.5a1 1 0 001 1h1.07c.15.56.37 1.1.66 1.6l-.76.76a1 1 0 000 1.41l1.06 1.06a1 1 0 001.41 0l.76-.76c.5.29 1.04.51 1.6.66V17a1 1 0 001 1H13a1 1 0 001-1v-1.07a6 6 0 001.6-.66l.76.76a1 1 0 001.41 0l1.06-1.06a1 1 0 000-1.41l-.76-.76c.29-.5.51-1.04.66-1.6H17a1 1 0 001-1V10a1 1 0 00-1-1h-.01a6 6 0 00-.65-1.6l.76-.76a1 1 0 000-1.41l-1.06-1.06a1 1 0 00-1.41 0l-.76.76a6 6 0 00-1.6-.66V3a1 1 0 00-1-1h-1.5zM10 13a3 3 0 110-6 3 3 0 010 6z" />
           </svg>
           Customize advanced values
           {setCount > 0 && (
-            <span className="rounded-full bg-tk-purple-500 px-2 py-0.5 text-xs font-bold text-white">
+            <span className="rounded-full bg-tk-yellow px-2 py-0.5 text-xs font-bold text-tk-ink">
               {setCount}
             </span>
           )}
         </span>
-        <span className="text-tk-purple-200">{open ? "▾" : "▸"}</span>
+        <span className="text-white/50">{open ? "▾" : "▸"}</span>
       </button>
       {open && (
-        <div className="space-y-4 border-t border-tk-purple-600/40 px-5 py-4">
-          <p className="text-xs text-tk-purple-200/70">
+        <div className="space-y-4 border-t border-white/10 px-5 py-4">
+          <p className="text-xs text-white/50">
             Optional overrides applied verbatim to your{" "}
             <code className="text-tk-pink">values.yaml</code>. Hints come from the
             official Testkube chart comments.

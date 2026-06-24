@@ -3,9 +3,10 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      // Brand palette extracted from https://testkube.io (Webflow design tokens)
+      // Brand palette from https://testkube.io (Webflow design tokens)
       colors: {
         tk: {
+          ink: "#0b0618",
           purple: {
             900: "#160f31",
             800: "#252348",
@@ -31,9 +32,16 @@ export default {
       borderRadius: {
         tk: "1.25rem",
         "tk-md": "0.625rem",
+        pill: "9999px",
       },
       boxShadow: {
         tk: "0 20px 60px -20px rgba(81, 48, 196, 0.45)",
+        glow: "0 0 120px rgba(81, 48, 196, 0.35)",
+        panel: "0 8px 32px rgba(0, 0, 0, 0.35)",
+      },
+      backgroundImage: {
+        "tk-glow":
+          "radial-gradient(ellipse 90% 60% at 50% -10%, rgba(81, 48, 196, 0.42), transparent 55%), radial-gradient(ellipse 50% 40% at 80% 20%, rgba(241, 172, 252, 0.12), transparent 50%)",
       },
     },
   },

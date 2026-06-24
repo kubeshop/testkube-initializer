@@ -191,7 +191,7 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
           <button
             type="button"
             onClick={addRow}
-            className="mt-1 rounded-full border border-tk-purple-400 px-4 py-1.5 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
+            className="tk-btn-outline mt-1 px-4 py-1.5 text-sm"
           >
             + Add organization / environment
           </button>

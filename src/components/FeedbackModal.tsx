@@ -80,19 +80,19 @@ export default function FeedbackModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="feedback-title"
-        className="relative w-full max-w-md rounded-tk border border-tk-purple-500/60 bg-tk-purple-800 p-6 shadow-tk"
+        className="relative w-full max-w-md rounded-tk border border-white/10 bg-tk-ink/95 p-6 shadow-panel backdrop-blur-xl"
       >
         {phase === "form" && (
           <>
             <h2 id="feedback-title" className="text-lg font-extrabold text-white">
               Quick feedback
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-tk-purple-200/90">
+            <p className="mt-2 text-sm leading-relaxed text-white/70">
               Was the Testkube Initializer useful for generating your{" "}
               <span className="font-semibold text-tk-pink">values.yaml</span>?
             </p>
 
-            <div className="mt-5 inline-flex w-full gap-2 rounded-tk-md border border-tk-purple-600 bg-tk-purple-900/60 p-1">
+            <div className="mt-5 inline-flex w-full gap-2 rounded-tk-md border border-white/10 bg-black/30 p-1">
               {(
                 [
                   { value: "yes" as const, label: "Yes, helpful" },
@@ -108,8 +108,8 @@ export default function FeedbackModal({
                     className={
                       "flex-1 rounded-[0.45rem] px-3 py-2.5 text-sm font-semibold transition " +
                       (active
-                        ? "bg-tk-purple-500 text-white shadow-tk"
-                        : "text-tk-purple-200 hover:bg-tk-purple-600/50")
+                        ? "bg-tk-yellow text-tk-ink shadow-sm"
+                        : "text-white/70 hover:bg-white/10")
                     }
                   >
                     {o.label}
@@ -128,7 +128,7 @@ export default function FeedbackModal({
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Missing options, confusing steps, deployment issues…"
-                className="w-full resize-y rounded-tk-md border border-tk-purple-600 bg-tk-purple-900/60 px-4 py-2.5 text-sm text-white placeholder:text-tk-purple-200/40 outline-none transition focus:border-tk-purple-400 focus:ring-2 focus:ring-tk-purple-500/40"
+                className="w-full resize-y rounded-tk-md border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-tk-purple-400/80 focus:ring-2 focus:ring-tk-purple-500/30"
               />
             </label>
 
@@ -136,7 +136,7 @@ export default function FeedbackModal({
               <button
                 type="button"
                 onClick={() => dismiss(true)}
-                className="rounded-full border border-tk-purple-400 px-4 py-2 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
+                className="tk-btn-outline"
               >
                 Skip
               </button>
@@ -144,7 +144,7 @@ export default function FeedbackModal({
                 type="button"
                 onClick={handleSubmit}
                 disabled={!rating || submitting}
-                className="rounded-full bg-tk-yellow px-5 py-2 text-sm font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
+                className="tk-btn-demo"
               >
                 {submitting ? "Sending…" : "Send feedback"}
               </button>
@@ -164,7 +164,7 @@ export default function FeedbackModal({
             <button
               type="button"
               onClick={onClose}
-              className="mt-6 rounded-full bg-tk-purple-500 px-5 py-2 text-sm font-bold text-white transition hover:bg-tk-purple-400"
+              className="mt-6 rounded-full bg-white/10 px-5 py-2 text-sm font-bold text-white transition hover:bg-white/20"
             >
               Close
             </button>
@@ -181,14 +181,14 @@ export default function FeedbackModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full border border-tk-purple-400 px-4 py-2 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
+                className="tk-btn-outline"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={() => setPhase("form")}
-                className="rounded-full bg-tk-yellow px-5 py-2 text-sm font-bold text-black transition hover:brightness-95"
+                className="tk-btn-demo"
               >
                 Try again
               </button>

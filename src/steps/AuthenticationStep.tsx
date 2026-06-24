@@ -27,7 +27,7 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
   return (
     <div className="space-y-5">
       {lab && (
-        <p className="rounded-tk-md border border-tk-purple-400/40 bg-tk-purple-500/10 px-4 py-3 text-sm text-tk-purple-100/90">
+        <p className="rounded-tk-md border border-white/10 bg-tk-yellow/10 px-4 py-3 text-sm text-white/80">
           <strong className="text-white">Ent. Lab</strong> — leave Dex issuer and IdP fields
           empty. After install, port-forward Dex/UI and sign in with your{" "}
           <strong className="text-white">Admin email</strong> (step 1) and password{" "}
