@@ -107,7 +107,7 @@ export default function CustomizePanel({
   }).length;
 
   return (
-    <div className="rounded-tk border border-dashed border-white/15 bg-black/20">
+    <div className="rounded-tk border border-dashed border-tk-purple-200/25 bg-tk-sidebar/40">
       <button
         type="button"
         onClick={() => {

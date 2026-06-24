@@ -3,10 +3,12 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      // Brand palette from https://testkube.io (Webflow design tokens)
+      // Official Webflow swatches from testkube.io shared CSS
       colors: {
         tk: {
-          ink: "#0b0618",
+          ink: "#160f31",
+          surface: "#252348",
+          sidebar: "#1c1a36",
           purple: {
             900: "#160f31",
             800: "#252348",
@@ -37,11 +39,8 @@ export default {
       boxShadow: {
         tk: "0 20px 60px -20px rgba(81, 48, 196, 0.45)",
         glow: "0 0 120px rgba(81, 48, 196, 0.35)",
-        panel: "0 8px 32px rgba(0, 0, 0, 0.35)",
-      },
-      backgroundImage: {
-        "tk-glow":
-          "radial-gradient(ellipse 90% 60% at 50% -10%, rgba(81, 48, 196, 0.42), transparent 55%), radial-gradient(ellipse 50% 40% at 80% 20%, rgba(241, 172, 252, 0.12), transparent 50%)",
+        panel: "0 8px 32px rgba(0, 0, 0, 0.28)",
+        "card-featured": "0 0 0 1px rgba(129, 140, 248, 0.35), 0 16px 48px rgba(81, 48, 196, 0.22)",
       },
     },
   },

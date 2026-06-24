@@ -15,46 +15,44 @@ body,
 body {
   margin: 0;
   font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
-  background-color: #0b0618;
+  background-color: #160f31;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Marketing-site shell background (testkube.io) */
+/* Official testkube.io gradient (.u-gradient-1) */
 .tk-site-bg {
-  background-color: #0b0618;
-  background-image: radial-gradient(
-      ellipse 90% 60% at 50% -10%,
-      rgba(81, 48, 196, 0.42),
-      transparent 55%
-    ),
-    radial-gradient(ellipse 50% 40% at 80% 20%, rgba(241, 172, 252, 0.12), transparent 50%);
+  background-color: #160f31;
+  background-image: radial-gradient(circle at 4% 100%, #5130c4, #160f31);
 }
 
-/* Glass panels used across wizard surfaces */
 @layer components {
   .tk-panel {
-    @apply rounded-tk border border-white/10 bg-white/5 shadow-panel backdrop-blur-sm;
+    @apply rounded-tk border border-tk-purple-200/20 bg-tk-surface/80 shadow-panel backdrop-blur-sm;
   }
 
   .tk-panel-muted {
-    @apply rounded-tk-md border border-white/10 bg-black/20;
+    @apply rounded-tk-md border border-tk-purple-200/15 bg-tk-sidebar/70;
   }
 
   .tk-btn-demo {
-    @apply rounded-full bg-tk-yellow px-6 py-2.5 text-sm font-bold text-tk-ink transition hover:bg-transparent hover:text-tk-yellow hover:ring-2 hover:ring-tk-yellow disabled:cursor-not-allowed disabled:opacity-40;
+    @apply rounded-full bg-tk-yellow px-6 py-2.5 text-sm font-bold text-black transition hover:bg-transparent hover:text-tk-yellow hover:ring-2 hover:ring-tk-yellow disabled:cursor-not-allowed disabled:opacity-40;
   }
 
   .tk-btn-outline {
-    @apply rounded-full border border-white/25 bg-transparent px-5 py-2 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-30;
+    @apply rounded-full border border-tk-purple-200/50 bg-transparent px-5 py-2 text-sm font-semibold text-white transition hover:border-tk-purple-200 hover:bg-tk-purple-500/20 disabled:cursor-not-allowed disabled:opacity-30;
   }
 
   .tk-btn-ghost {
-    @apply rounded-full px-5 py-2 text-sm font-semibold text-white/80 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-30;
+    @apply rounded-full px-5 py-2 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-30;
   }
 
   .tk-link {
-    @apply font-semibold text-tk-pink transition hover:text-white hover:underline;
+    @apply font-semibold text-tk-pink transition hover:text-tk-purple-200 hover:underline;
+  }
+
+  .tk-muted {
+    @apply text-tk-purple-200/80;
   }
 }
 
@@ -66,7 +64,7 @@ body {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(81, 48, 196, 0.55);
+  background: #412f7e;
   border-radius: 9999px;
 }
 *::-webkit-scrollbar-thumb:hover {
