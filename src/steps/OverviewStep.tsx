@@ -13,9 +13,9 @@ import type { StepProps } from "./types";
 
 function Summary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 border-b border-tk-purple-600/40 py-2 text-sm">
-      <span className="text-tk-purple-200/80">{label}</span>
-      <span className="font-semibold text-white">{value || "—"}</span>
+    <div className="flex flex-col gap-1.5">
+      <span className="tk-metric-label">{label}</span>
+      <span className="tk-metric-value">{value || "—"}</span>
     </div>
   );
 }
@@ -59,7 +59,7 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
       >
         {tone === "error" ? "✕" : "⚠"} {items.length} {title}
       </h3>
-      <ul className="mt-2 space-y-1.5 text-xs text-tk-purple-100/90">
+      <ul className="mt-2 space-y-1.5 text-xs text-tk-slate-300">
         {items.map((it) => (
           <li key={it.id} className="flex items-center justify-between gap-3">
             <span>{it.message}</span>
@@ -79,7 +79,7 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {errors.length > 0 && (
         <IssueList items={errors} tone="error" title="error(s) — fix before exporting" />
       )}
@@ -93,7 +93,7 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
             ⚠ {plaintext.length} plaintext secret
             {plaintext.length > 1 ? "s" : ""} in values.yaml
           </h3>
-          <ul className="mt-2 space-y-1 text-xs text-tk-purple-100/90">
+          <ul className="mt-2 space-y-1 text-xs text-tk-slate-300">
             {plaintext.map((s) => (
               <li key={s.label}>
                 <span className="font-semibold">{s.label}</span> — {s.hint}
@@ -105,11 +105,11 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
 
       {secrets.length > 0 && (
         <Card title="Referenced Kubernetes Secrets">
-          <p className="text-sm text-tk-purple-200/80">
+          <p className="text-sm text-tk-muted">
             Your values reference {secrets.length} existing Secret
             {secrets.length > 1 ? "s" : ""}:{" "}
             {secrets.map((s) => (
-              <code key={s.name} className="mr-2 text-tk-pink">
+              <code key={s.name} className="mr-2 text-tk-link">
                 {s.name}
               </code>
             ))}
@@ -128,7 +128,7 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
       )}
 
       <Card title="Summary">
-        <div className="grid gap-x-8 sm:grid-cols-2">
+        <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
           <Summary label="Company" value={config.initial.companyName} />
           <Summary label="Admin email" value={config.initial.adminEmail} />
           <Summary
@@ -154,7 +154,7 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
           <button
             type="button"
             onClick={copy}
-            className="rounded-full border border-tk-purple-500 px-4 py-1.5 text-sm font-semibold text-tk-purple-200 transition hover:bg-tk-purple-500/20"
+            className="rounded-tk border border-tk-primary px-4 py-1.5 text-sm font-normal text-tk-muted transition hover:bg-tk-slate-800"
           >
             {copied ? "Copied!" : "Copy"}
           </button>
@@ -163,17 +163,17 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
             onClick={onDownloadYaml}
             disabled={errors.length > 0 || !onDownloadYaml}
             title={errors.length > 0 ? `Resolve ${errors.length} error(s) to download` : undefined}
-            className="rounded-full bg-tk-yellow px-4 py-1.5 text-sm font-bold text-black transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
+            className="tk-btn-primary px-4 py-1.5 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Download
           </button>
         </div>
-        <pre className="max-h-[420px] overflow-auto rounded-tk-md border border-white/10 bg-black/40 p-4 text-xs leading-relaxed text-white/85">
+        <pre className="max-h-[420px] overflow-auto rounded-tk border border-tk-slate-700 bg-tk-slate-900 p-4 text-xs leading-relaxed text-tk-slate-200">
           <code>{yaml}</code>
         </pre>
-        <p className="text-xs text-tk-purple-200/70">
+        <p className="text-xs text-tk-subtle">
           Install with:{" "}
-          <code className="text-tk-pink">
+          <code className="text-tk-link">
             helm upgrade --install testkube {enterprise ? "testkube/testkube-enterprise" : "testkube/testkube"} -f values.yaml
           </code>
         </p>

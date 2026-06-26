@@ -5,7 +5,7 @@ import type { StepProps } from "./types";
 export default function NatsStep({ config, update, setAdvanced }: StepProps) {
   const c = config.nats;
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <Card title="NATS">
         <Toggle
           label="Deploy embedded NATS"

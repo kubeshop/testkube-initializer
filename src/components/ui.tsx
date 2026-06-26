@@ -15,21 +15,18 @@ export function Field({
   children: ReactNode;
 }) {
   const setHelp = useSetHelp();
-  // React's onFocus bubbles, so focusing the inner control triggers this.
   const show = () => setHelp({ title: label, body: help, path: helpPath });
   return (
     <label className="block" onFocus={show} onMouseEnter={show}>
-      <span className="mb-1.5 block text-sm font-semibold text-white">
-        {label}
-      </span>
+      <span className="mb-1.5 block text-sm font-medium text-white">{label}</span>
       {children}
-      {hint && <span className="mt-1.5 block text-xs text-tk-purple-200/60">{hint}</span>}
+      {hint && <span className="mt-1.5 block text-xs text-tk-subtle">{hint}</span>}
     </label>
   );
 }
 
 const inputBase =
-  "w-full rounded-tk-md border border-tk-purple-200/20 bg-tk-purple-700/80 px-4 py-2.5 text-sm text-white placeholder:text-tk-purple-200/40 outline-none transition focus:border-tk-purple-500 focus:ring-2 focus:ring-tk-purple-500/30";
+  "w-full rounded-tk border border-tk-slate-600 bg-tk-slate-800 px-4 py-2.5 text-sm text-tk-slate-200 placeholder:text-tk-subtle outline-none transition hover:border-tk-slate-500 focus:border-tk-accent focus:ring-2 focus:ring-tk-primary/25";
 
 export function TextInput(
   props: React.InputHTMLAttributes<HTMLInputElement>
@@ -53,11 +50,11 @@ export function Select({
       className={`${inputBase} appearance-none bg-[length:1rem] bg-[right_0.75rem_center] bg-no-repeat`}
       style={{
         backgroundImage:
-          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23cfc8fd'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E\")",
+          "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E\")",
       }}
     >
       {options.map((o) => (
-        <option key={o.value} value={o.value} className="bg-tk-purple-900">
+        <option key={o.value} value={o.value} className="bg-tk-slate-900">
           {o.label}
         </option>
       ))}
@@ -75,7 +72,7 @@ export function SegmentedControl<T extends string>({
   options: { value: T; label: string }[];
 }) {
   return (
-    <div className="inline-flex flex-wrap gap-1 rounded-tk-md border border-tk-purple-200/20 bg-tk-purple-700/80 p-1">
+    <div className="inline-flex flex-wrap gap-0 rounded-tk border border-tk-slate-600 p-0">
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -84,10 +81,10 @@ export function SegmentedControl<T extends string>({
             type="button"
             onClick={() => onChange(o.value)}
             className={
-              "rounded-[0.45rem] px-4 py-1.5 text-sm font-semibold transition " +
+              "px-4 py-2 text-xs font-normal uppercase tracking-wide transition " +
               (active
-                ? "bg-tk-yellow font-bold text-black shadow-sm"
-                : "text-tk-purple-200/80 hover:bg-tk-purple-500/20 hover:text-white")
+                ? "rounded-tk bg-tk-accent text-white"
+                : "text-white hover:bg-tk-slate-800")
             }
           >
             {o.label}
@@ -123,24 +120,20 @@ export function Toggle({
       onFocus={show}
       onMouseEnter={show}
       className={
-        "flex w-full items-center justify-between gap-4 rounded-tk-md border px-4 py-3 text-left transition " +
-        (checked
-          ? "border-tk-yellow/60 bg-tk-yellow/10"
-          : "border-tk-purple-200/20 bg-tk-purple-700/50 hover:border-tk-purple-200/35")
+        "tk-card-interactive tk-card-body flex-row items-center justify-between !p-4 text-left " +
+        (checked ? "!border-tk-accent/60 !bg-tk-slate-900" : "")
       }
     >
       <span>
-        <span className="block text-sm font-semibold text-white">{label}</span>
+        <span className="block text-sm font-medium text-white">{label}</span>
         {description && (
-          <span className="mt-0.5 block text-xs text-tk-purple-200/60">
-            {description}
-          </span>
+          <span className="mt-0.5 block text-xs text-tk-subtle">{description}</span>
         )}
       </span>
       <span
         className={
           "relative h-6 w-11 flex-shrink-0 rounded-full transition " +
-          (checked ? "bg-tk-yellow" : "bg-white/20")
+          (checked ? "bg-tk-accent" : "bg-tk-slate-600")
         }
       >
         <span
@@ -162,13 +155,11 @@ export function Card({
   children: ReactNode;
 }) {
   return (
-    <div className="tk-panel p-5">
-      {title && (
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-tk-purple-200/70">
-          {title}
-        </h3>
-      )}
-      <div className="space-y-4">{children}</div>
+    <div className="tk-card">
+      <div className="tk-card-body">
+        {title && <h3 className="tk-metric-label">{title}</h3>}
+        <div className="flex flex-col gap-3">{children}</div>
+      </div>
     </div>
   );
 }

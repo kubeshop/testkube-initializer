@@ -29,7 +29,7 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
     });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <Card title="Identity">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
@@ -160,7 +160,7 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
             })
           }
         >
-          <div className="grid grid-cols-[1fr_1fr_auto] gap-2 px-1 text-xs font-semibold uppercase text-tk-purple-200/70">
+          <div className="grid grid-cols-[1fr_1fr_auto] gap-2 px-1 text-xs font-semibold uppercase text-tk-subtle">
             <span>Organization</span>
             <span>Environment</span>
             <span />
@@ -181,7 +181,7 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
                 type="button"
                 onClick={() => removeRow(row.id)}
                 disabled={c.orgsEnvs.length <= 1}
-                className="rounded-tk-md border border-tk-purple-600 px-3 text-tk-purple-200 transition hover:border-tk-error hover:text-tk-error disabled:opacity-30"
+                className="rounded-tk border border-tk-border px-3 text-tk-muted transition hover:border-tk-error hover:text-tk-error disabled:opacity-30"
                 aria-label="Remove row"
               >
                 ×

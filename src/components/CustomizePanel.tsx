@@ -50,7 +50,7 @@ function AdvancedFieldInput({
           placeholder={def.placeholder}
           value={text}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full resize-y rounded-tk-md border border-white/10 bg-black/30 px-4 py-2.5 font-mono text-xs text-white placeholder:text-white/35 outline-none transition focus:border-tk-purple-500/80 focus:ring-2 focus:ring-tk-purple-500/30"
+          className="w-full resize-y rounded-tk border border-tk-slate-600 bg-tk-slate-800 px-4 py-2.5 font-mono text-xs text-tk-slate-200 placeholder:text-tk-subtle outline-none transition hover:border-tk-slate-500 focus:border-tk-accent focus:ring-2 focus:ring-tk-primary/25"
         />
         {error && (
           <span className="mt-1 block text-xs text-tk-error">
@@ -107,7 +107,7 @@ export default function CustomizePanel({
   }).length;
 
   return (
-    <div className="rounded-tk border border-dashed border-tk-purple-200/25 bg-tk-purple-700/40">
+    <div className="tk-card border-dashed border-tk-slate-700">
       <button
         type="button"
         onClick={() => {
@@ -121,7 +121,7 @@ export default function CustomizePanel({
             return !o;
           });
         }}
-        className="flex w-full items-center justify-between gap-2 px-5 py-3 text-left"
+        className="flex w-full items-center justify-between gap-2 px-5 py-3 text-left transition hover:bg-tk-slate-900"
       >
         <span className="flex items-center gap-2 text-sm font-bold text-white/90">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -129,7 +129,7 @@ export default function CustomizePanel({
           </svg>
           Customize advanced values
           {setCount > 0 && (
-            <span className="rounded-full bg-tk-yellow px-2 py-0.5 text-xs font-bold text-tk-ink">
+            <span className="rounded-tk bg-tk-primary px-2 py-0.5 text-xs font-medium text-white">
               {setCount}
             </span>
           )}
@@ -137,10 +137,10 @@ export default function CustomizePanel({
         <span className="text-white/50">{open ? "▾" : "▸"}</span>
       </button>
       {open && (
-        <div className="space-y-4 border-t border-white/10 px-5 py-4">
+        <div className="tk-card-body space-y-4 border-t border-tk-slate-700 !pt-4">
           <p className="text-xs text-white/50">
             Optional overrides applied verbatim to your{" "}
-            <code className="text-tk-pink">values.yaml</code>. Hints come from the
+            <code className="text-tk-link">values.yaml</code>. Hints come from the
             official Testkube chart comments.
           </p>
           {fields.map((f) => (

@@ -15,7 +15,7 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
   if (!enterprise) {
     return (
       <Card title="Authentication">
-        <p className="text-sm text-tk-purple-200">
+        <p className="text-sm text-tk-muted">
           Built-in SSO / Dex is an Enterprise feature. The OSS chart relies on
           your cluster's access controls. Switch <strong>Env type</strong> to an
           Enterprise flavor in step 1 to configure authentication.
@@ -25,13 +25,13 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {lab && (
-        <p className="rounded-tk-md border border-white/10 bg-tk-yellow/10 px-4 py-3 text-sm text-white/80">
+        <p className="rounded-tk border border-tk-border bg-tk-slate-800/50 px-4 py-3 text-sm text-tk-slate-300">
           <strong className="text-white">Ent. Lab</strong> — leave Dex issuer and IdP fields
           empty. After install, port-forward Dex/UI and sign in with your{" "}
           <strong className="text-white">Admin email</strong> (step 1) and password{" "}
-          <code className="text-tk-pink">password</code>.
+          <code className="text-tk-link">password</code>.
         </p>
       )}
       <Card title="Identity broker (Dex)">
@@ -68,12 +68,12 @@ export default function AuthenticationStep({ config, update, setAdvanced }: Step
 
       {c.dexEnabled && (
         <Card title="Upstream identity provider">
-          <p className="mb-4 text-sm text-tk-purple-200">
+          <p className="mb-4 text-sm text-tk-muted">
             {lab
               ? "Leave IdP fields empty for static local login."
               : "Configure your corporate IdP for production SSO."}{" "}
             When Client ID and Secret are empty, sign in with your Admin email from step 1
-            and password <code className="text-tk-pink">password</code>.
+            and password <code className="text-tk-link">password</code>.
           </p>
           <Field
             label="Connector type"

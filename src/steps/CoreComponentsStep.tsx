@@ -9,10 +9,10 @@ export default function CoreComponentsStep({ config, update, setAdvanced }: Step
   const c = config.core;
   const enterprise = isEnterprise(config.initial.envType);
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <Card title="Core Components">
         {!enterprise && (
-          <p className="mb-4 rounded-tk-md border border-white/10 bg-tk-yellow/10 px-4 py-3 text-sm text-white/80">
+          <p className="mb-4 rounded-tk border border-tk-border bg-tk-slate-800/50 px-4 py-3 text-sm text-tk-slate-300">
             OSS deploys the agent (API) and optional dashboard. Worker Service and AI
             are <strong className="text-white">Enterprise-only</strong> components.
           </p>
@@ -66,7 +66,7 @@ export default function CoreComponentsStep({ config, update, setAdvanced }: Step
               applyHaPreset(config, setAdvanced);
               captureEvent("ha_preset_applied", { env_type: config.initial.envType });
             }}
-            className="flex-shrink-0 rounded-full bg-tk-yellow px-4 py-2 text-sm font-bold text-tk-ink transition hover:bg-transparent hover:text-tk-yellow hover:ring-2 hover:ring-tk-yellow"
+            className="tk-btn-primary flex-shrink-0 px-4 py-2"
           >
             Apply HA preset
           </button>

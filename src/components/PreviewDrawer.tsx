@@ -53,7 +53,7 @@ export default function PreviewDrawer({
       )}
       <div
         className={
-          "fixed bottom-0 left-0 right-0 z-30 border-t border-tk-purple-200/15 bg-tk-purple-900/95 backdrop-blur-xl " +
+          "fixed bottom-0 left-0 right-0 z-30 border-t border-tk-border bg-tk-bg/95 backdrop-blur-xl " +
           (open
             ? "shadow-[0_-16px_48px_rgba(0,0,0,0.65)]"
             : "shadow-[0_-8px_32px_rgba(0,0,0,0.5)]")
@@ -66,8 +66,8 @@ export default function PreviewDrawer({
             className="flex items-center gap-2 text-sm font-bold text-white"
           >
             <span className="text-white/50">{open ? "▾" : "▸"}</span>
-            Live <span className="text-tk-pink">values.yaml</span>
-            <span className="rounded-full border border-tk-purple-200/20 bg-tk-purple-800/60 px-2 py-0.5 text-xs font-semibold text-tk-purple-200/80">
+            Live <span className="text-tk-link">values.yaml</span>
+            <span className="rounded-full border border-tk-border bg-tk-slate-800 px-2 py-0.5 text-xs font-semibold text-tk-muted">
               {lines} lines
             </span>
             {badgeCount > 0 && (
@@ -93,7 +93,7 @@ export default function PreviewDrawer({
         </div>
         {open && (
           <div className="mx-auto max-w-[1200px] px-6 pb-4">
-            <pre className="max-h-[min(50vh,420px)] overflow-auto rounded-tk-md border border-tk-purple-200/20 bg-tk-purple-700/90 p-3 text-xs leading-relaxed text-tk-purple-200/90">
+            <pre className="max-h-[min(50vh,420px)] overflow-auto rounded-tk border border-tk-border bg-tk-slate-900 p-3 text-xs leading-relaxed text-tk-slate-300">
               <code>{yaml}</code>
             </pre>
           </div>

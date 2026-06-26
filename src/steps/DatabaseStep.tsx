@@ -9,7 +9,7 @@ export default function DatabaseStep({ config, update, setAdvanced }: StepProps)
   const env = config.initial.envType;
   const t = (path: string, fallback: string) => tipFor(env, path) ?? fallback;
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <Card title="Engine">
         <Field
           label="Database Type"

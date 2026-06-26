@@ -14,18 +14,18 @@ export default function EndpointsStep({ config, update, setAdvanced }: StepProps
   const t = (path: string, fallback: string) => tipFor(env, path) ?? fallback;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {prod && (
-        <p className="rounded-tk-md border border-tk-yellow/40 bg-tk-yellow/10 px-4 py-3 text-sm text-tk-purple-100/90">
-          <strong className="text-tk-yellow">Ent. Prod</strong> exposes Testkube via Ingress
+        <p className="rounded-tk border border-tk-primary/30 bg-tk-primary/10 px-4 py-3 text-sm text-tk-slate-300">
+          <strong className="text-tk-accent">Ent. Prod</strong> exposes Testkube via Ingress
           and TLS. Use your real DNS base domain and a cert-manager issuer that already
-          exists in the cluster (e.g. <code className="text-tk-pink">letsencrypt-prod</code>).
+          exists in the cluster (e.g. <code className="text-tk-link">letsencrypt-prod</code>).
         </p>
       )}
       {lab && (
-        <p className="rounded-tk-md border border-white/10 bg-tk-yellow/10 px-4 py-3 text-sm text-white/80">
+        <p className="rounded-tk border border-tk-border bg-tk-slate-800/50 px-4 py-3 text-sm text-tk-slate-300">
           <strong className="text-white">Ent. Lab</strong> uses in-cluster Services and
-          port-forward — leave <strong className="text-tk-pink">Base domain</strong> empty.
+          port-forward — leave <strong className="text-tk-link">Base domain</strong> empty.
           Kubernetes Service integration is enabled automatically.
         </p>
       )}

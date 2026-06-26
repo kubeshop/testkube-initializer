@@ -9,7 +9,7 @@ export default function ArtifactsStoreStep({ config, update, setAdvanced }: Step
   const env = config.initial.envType;
   const t = (path: string, fallback: string) => tipFor(env, path) ?? fallback;
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <Card title="Store">
         <Field
           label="Store Type"
@@ -156,11 +156,11 @@ export default function ArtifactsStoreStep({ config, update, setAdvanced }: Step
               </div>
             )}
             {config.initial.envType !== "oss" && (
-              <p className="text-xs text-tk-purple-200/70">
+              <p className="text-xs text-tk-subtle">
                 The Secret must contain keys{" "}
-                <code className="text-tk-pink">root-user</code>,{" "}
-                <code className="text-tk-pink">root-password</code> and{" "}
-                <code className="text-tk-pink">token</code>.
+                <code className="text-tk-link">root-user</code>,{" "}
+                <code className="text-tk-link">root-password</code> and{" "}
+                <code className="text-tk-link">token</code>.
               </p>
             )}
           </>

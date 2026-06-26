@@ -185,22 +185,22 @@ export default function App() {
     <div className="tk-site-bg flex min-h-screen flex-col text-white">
       <SiteHeader />
 
-      <div className="border-b border-tk-purple-200/10 px-5 py-6 text-center lg:px-6">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-tk-purple-200/60">
+      <div className="border-b border-tk-border px-5 py-6 text-center lg:px-6">
+        <p className="text-xs font-medium uppercase tracking-[0.15em] text-tk-subtle">
           Helm values generator
         </p>
-        <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-          Configure your <span className="text-tk-purple-200">Testkube</span> deployment
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-[28px] sm:leading-8">
+          Configure your <span className="text-tk-accent">Testkube</span> deployment
         </h1>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-tk-purple-200/75">
-          Generate a ready-to-use <code className="text-tk-yellow">values.yaml</code> for OSS or
+        <p className="mx-auto mt-2 max-w-xl text-sm text-tk-muted">
+          Generate a ready-to-use <code className="text-tk-link">values.yaml</code> for OSS or
           Enterprise.
         </p>
       </div>
 
-      <main className="mx-auto grid w-full max-w-[1200px] flex-1 grid-cols-1 gap-5 px-5 pb-20 pt-2 lg:grid-cols-[220px_1fr_260px] lg:px-6">
-        <nav className="tk-panel p-3">
-          <h2 className="px-2 pb-2 pt-1 text-sm font-bold uppercase tracking-wide text-tk-purple-200/70">
+      <main className="mx-auto grid w-full max-w-[1200px] flex-1 grid-cols-1 gap-4 px-5 pb-20 pt-2 lg:grid-cols-[220px_1fr_260px] lg:px-6">
+        <nav className="tk-panel !p-3">
+          <h2 className="px-2 pb-2 pt-1 text-sm font-medium uppercase tracking-wide text-tk-muted">
             Wizard
           </h2>
           <ol className="space-y-1">
@@ -212,18 +212,18 @@ export default function App() {
                     type="button"
                     onClick={() => navigateToStep(i, "nav")}
                     className={
-                      "flex w-full items-center gap-2 rounded-tk-md px-3 py-2 text-left text-sm transition " +
+                      "flex w-full items-center gap-2 rounded-tk px-3 py-2 text-left text-sm transition " +
                       (isActive
-                        ? "bg-tk-yellow font-bold text-black shadow-sm"
-                        : "text-tk-purple-200/80 hover:bg-tk-purple-500/20 hover:text-white")
+                        ? "bg-tk-slate-800 font-medium text-white"
+                        : "text-tk-muted hover:bg-tk-slate-800/60 hover:text-white")
                     }
                   >
                     <span
                       className={
-                        "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold " +
+                        "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-xs font-medium " +
                         (isActive
-                          ? "bg-black text-tk-yellow"
-                          : "bg-tk-purple-600/50 text-tk-purple-200")
+                          ? "bg-tk-accent text-white"
+                          : "bg-tk-slate-700 text-tk-muted")
                       }
                     >
                       {i + 1}
@@ -244,11 +244,9 @@ export default function App() {
           </ol>
         </nav>
 
-        <section className="tk-panel flex flex-col p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-bold text-white">{meta.panelTitle}</h2>
-          </div>
-          <div className="flex-1">
+        <section className="flex min-h-0 flex-col">
+          <h2 className="mb-4 text-base font-normal text-white">{meta.panelTitle}</h2>
+          <div className="flex flex-1 flex-col">
             <StepComponent
               config={config}
               update={update}
@@ -258,7 +256,7 @@ export default function App() {
             />
           </div>
 
-          <div className="mt-6 flex items-center justify-between border-t border-tk-purple-200/15 pt-5">
+          <div className="mt-6 flex items-center justify-between border-t border-tk-slate-700 pt-5">
             <button
               type="button"
               onClick={() => navigateToStep(Math.max(0, active - 1), "back")}
@@ -290,34 +288,34 @@ export default function App() {
         </section>
 
         <aside className="tk-panel self-start p-4 lg:sticky lg:top-[var(--tk-nav-height)]">
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-tk-purple-200/70">
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-tk-muted">
             Helpful links & explanations
           </h2>
 
           {fieldHelp && (
-            <div className="mb-4 rounded-tk-md border border-tk-purple-200/25 bg-tk-purple-500/15 p-3">
-              <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-tk-pink">
+            <div className="mb-4 rounded-tk border border-transparent bg-tk-slate-900 p-3">
+              <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-tk-link">
                 Field
               </p>
-              <h3 className="text-sm font-bold text-white">{fieldHelp.title}</h3>
-              <p className="mt-1 text-sm leading-relaxed text-tk-purple-200/85">
+              <h3 className="text-sm font-medium text-white">{fieldHelp.title}</h3>
+              <p className="mt-1 text-sm leading-relaxed text-tk-slate-300">
                 {fieldHelp.body || "No additional guidance for this field."}
               </p>
               {fieldHelp.path && (
-                <code className="mt-2 block break-all text-xs text-tk-purple-200/60">
+                <code className="mt-2 block break-all text-xs text-tk-subtle">
                   {fieldHelp.path}
                 </code>
               )}
             </div>
           )}
 
-          <div className="space-y-3 text-sm leading-relaxed text-tk-purple-200/80">
+          <div className="space-y-3 text-sm leading-relaxed text-tk-muted">
             {meta.help.map((h, i) => (
               <p key={i}>{h}</p>
             ))}
           </div>
           {meta.links.length > 0 && (
-            <div className="mt-4 space-y-2 border-t border-tk-purple-200/15 pt-4">
+            <div className="mt-4 space-y-2 border-t border-tk-border pt-4">
               {meta.links.map((l) => (
                 <a
                   key={l.href}
