@@ -63,7 +63,7 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
     warn(
       "lab-domain",
       STEP.endpoints,
-      "Ent. Lab does not need a base domain — leave it empty for port-forward / in-cluster access."
+      "Laboratorio does not need a base domain — leave it empty for port-forward / in-cluster access."
     );
   }
 
@@ -71,7 +71,7 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
     warn(
       "lab-cert",
       STEP.endpoints,
-      "cert-manager is usually disabled for Ent. Lab — it is turned off automatically when you select Ent. Lab."
+      "cert-manager is usually disabled for Laboratorio — it is turned off automatically when you select Laboratorio."
     );
   }
 
@@ -79,7 +79,7 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
     warn(
       "prod-k8s-svc",
       STEP.endpoints,
-      "Ent. Prod normally uses Ingress (disable “Use Kubernetes Service”)."
+      "Production normally uses Ingress (disable “Use Kubernetes Service”)."
     );
   }
 
@@ -99,7 +99,7 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
     warn(
       "domain-tld",
       STEP.endpoints,
-      "Domains like .local / .test are for lab use — prefer Ent. Lab, or use a real domain for Ent. Prod."
+      "Domains like .local / .test are for lab use — prefer Laboratorio, or use a real domain for Production."
     );
     if (
       cfg.endpoints.certManager &&

@@ -4,7 +4,7 @@ import { tipFor } from "../lib/tips";
 import { useSetHelp } from "../lib/helpContext";
 import type { EnvType, KubernetesType, LicenseMode } from "../types/config";
 import { isEnterprise } from "../types/config";
-import { labEndpointPatch, ossEndpointPatch, prodEndpointPatch } from "../lib/envPresets";
+import { labEndpointPatch, ossEndpointPatch, prodEndpointPatch, ENV_TYPE_LABELS } from "../lib/envPresets";
 import type { StepProps } from "./types";
 
 export default function InitialConfigStep({ config, update, setAdvanced }: StepProps) {
@@ -89,8 +89,8 @@ export default function InitialConfigStep({ config, update, setAdvanced }: StepP
             }}
             options={[
               { value: "oss", label: "OSS" },
-              { value: "enterprise-prod", label: "Ent. Prod" },
-              { value: "enterprise-lab", label: "Ent. Lab" },
+              { value: "enterprise-prod", label: ENV_TYPE_LABELS["enterprise-prod"] },
+              { value: "enterprise-lab", label: ENV_TYPE_LABELS["enterprise-lab"] },
             ]}
           />
         </Field>

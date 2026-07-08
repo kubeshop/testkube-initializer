@@ -20,7 +20,7 @@ export const STEPS: StepMeta[] = [
     panelTitle: "Configuration Panel — Initial Config",
     help: [
       "Identify your installation and pick the deployment flavor.",
-      "OSS runs the open-source chart; Enterprise (Prod/Lab) runs the control plane with licensing, SSO and multi-environment support.",
+      "OSS runs the open-source chart; Enterprise (Production/Laboratorio) runs the control plane with licensing, SSO and multi-environment support.",
       "For online licenses Testkube validates the key against the licensing service; offline licenses are mounted from a Kubernetes secret.",
     ],
     links: [

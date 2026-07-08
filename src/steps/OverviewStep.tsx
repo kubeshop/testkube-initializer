@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Card } from "../components/ui";
+import { envTypeLabel } from "../lib/envPresets";
 import { isEnterprise } from "../types/config";
 import {
   detectPlaintextSecrets,
@@ -133,7 +134,7 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
           <Summary label="Admin email" value={config.initial.adminEmail} />
           <Summary
             label="Flavor"
-            value={enterprise ? `Enterprise (${config.initial.envType})` : "OSS"}
+            value={enterprise ? `Enterprise (${envTypeLabel(config.initial.envType)})` : "OSS"}
           />
           <Summary label="Kubernetes" value={config.initial.kubernetesType} />
           <Summary
