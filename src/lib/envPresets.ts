@@ -3,7 +3,7 @@ import type { EnvType, TestkubeConfig } from "../types/config";
 export const ENV_TYPE_LABELS: Record<EnvType, string> = {
   oss: "OSS",
   "enterprise-prod": "Production",
-  "enterprise-lab": "Laboratorio",
+  "enterprise-lab": "Lab",
 };
 
 export function envTypeLabel(envType: EnvType): string {
@@ -18,7 +18,7 @@ export function isProdEnv(envType: EnvType): boolean {
   return envType === "enterprise-prod";
 }
 
-/** Endpoint defaults when switching to Laboratorio (kind / port-forward). */
+/** Endpoint defaults when switching to Lab (kind / port-forward). */
 export function labEndpointPatch(): Pick<
   TestkubeConfig["endpoints"],
   "domain" | "useKubernetesService" | "certManager"

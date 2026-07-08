@@ -63,7 +63,7 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
     warn(
       "lab-domain",
       STEP.endpoints,
-      "Laboratorio does not need a base domain — leave it empty for port-forward / in-cluster access."
+      "Lab does not need a base domain — leave it empty for port-forward / in-cluster access."
     );
   }
 
@@ -71,7 +71,7 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
     warn(
       "lab-cert",
       STEP.endpoints,
-      "cert-manager is usually disabled for Laboratorio — it is turned off automatically when you select Laboratorio."
+      "cert-manager is usually disabled for Lab — it is turned off automatically when you select Lab."
     );
   }
 
@@ -99,7 +99,7 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
     warn(
       "domain-tld",
       STEP.endpoints,
-      "Domains like .local / .test are for lab use — prefer Laboratorio, or use a real domain for Production."
+      "Domains like .local / .test are for lab use — prefer Lab, or use a real domain for Production."
     );
     if (
       cfg.endpoints.certManager &&

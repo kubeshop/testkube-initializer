@@ -24,7 +24,7 @@ export default function EndpointsStep({ config, update, setAdvanced }: StepProps
       )}
       {lab && (
         <p className="rounded-tk border border-tk-border bg-tk-slate-800/50 px-4 py-3 text-sm text-tk-slate-300">
-          <strong className="text-white">Laboratorio</strong> uses in-cluster Services and
+          <strong className="text-white">Lab</strong> uses in-cluster Services and
           port-forward — leave <strong className="text-tk-link">Base domain</strong> empty.
           Kubernetes Service integration is enabled automatically.
         </p>
