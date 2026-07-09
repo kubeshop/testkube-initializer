@@ -11,7 +11,6 @@ import { STEPS } from "./lib/steps";
 import { downloadYaml } from "./lib/yaml";
 import { HelpContext, type FieldHelp } from "./lib/helpContext";
 import FeedbackModal from "./components/FeedbackModal";
-import LoginGate, { type LoginGateValues } from "./components/LoginGate";
 import PreviewDrawer from "./components/PreviewDrawer";
 import { validate } from "./lib/validation";
 import type { AdvancedScalar, TestkubeConfig } from "./types/config";
@@ -38,44 +37,8 @@ const STEP_COMPONENTS: ((p: StepProps) => JSX.Element)[] = [
 
 type DownloadSource = "overview" | "preview_drawer";
 
-const GATE_STORAGE_KEY = "tk-initializer-gate-passed";
-const GATE_PROFILE_KEY = "tk-initializer-gate-profile";
-
-function loadGateProfile(): LoginGateValues | null {
-  try {
-    const raw = sessionStorage.getItem(GATE_PROFILE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as LoginGateValues;
-    if (parsed.companyName?.trim() && parsed.adminEmail?.trim()) return parsed;
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
-function configWithGateProfile(base: TestkubeConfig, profile: LoginGateValues): TestkubeConfig {
-  return {
-    ...base,
-    initial: {
-      ...base.initial,
-      companyName: profile.companyName,
-      adminEmail: profile.adminEmail,
-    },
-    auth: {
-      ...base.auth,
-      adminEmails: base.auth.adminEmails.trim() ? base.auth.adminEmails : profile.adminEmail,
-    },
-  };
-}
-
 export default function App() {
-  const [gatePassed, setGatePassed] = useState(
-    () => sessionStorage.getItem(GATE_STORAGE_KEY) === "1"
-  );
-  const [config, setConfig] = useState<TestkubeConfig>(() => {
-    const profile = gatePassed ? loadGateProfile() : null;
-    return profile ? configWithGateProfile(defaultConfig, profile) : defaultConfig;
-  });
+  const [config, setConfig] = useState<TestkubeConfig>(defaultConfig);
   const [active, setActive] = useState(0);
   const [fieldHelp, setFieldHelp] = useState<FieldHelp | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -98,14 +61,13 @@ export default function App() {
   }, [active]);
 
   useEffect(() => {
-    if (!gatePassed) return;
     const step = STEPS[active];
     captureEvent("step_viewed", {
       step: active + 1,
       step_id: step.id,
       env_type: config.initial.envType,
     });
-  }, [active, config.initial.envType, gatePassed]);
+  }, [active, config.initial.envType]);
 
   useEffect(() => {
     if (prevEnvType.current === config.initial.envType) return;
@@ -135,7 +97,6 @@ export default function App() {
   }, [active, config]);
 
   useEffect(() => {
-    if (!gatePassed) return;
     const onLeave = () => {
       captureEvent("wizard_abandoned", {
         last_step_id: STEPS[activeRef.current].id,
@@ -146,17 +107,6 @@ export default function App() {
     };
     window.addEventListener("pagehide", onLeave);
     return () => window.removeEventListener("pagehide", onLeave);
-  }, [gatePassed]);
-
-  const handleGateSubmit = useCallback(({ companyName, adminEmail }: LoginGateValues) => {
-    sessionStorage.setItem(GATE_STORAGE_KEY, "1");
-    sessionStorage.setItem(
-      GATE_PROFILE_KEY,
-      JSON.stringify({ companyName, adminEmail })
-    );
-    setConfig((prev) => configWithGateProfile(prev, { companyName, adminEmail }));
-    captureEvent("login_gate_submitted", { has_company: Boolean(companyName) });
-    setGatePassed(true);
   }, []);
 
   const navigateToStep = useCallback(
@@ -229,10 +179,6 @@ export default function App() {
     for (const e of validation.errors) m[e.step] = (m[e.step] ?? 0) + 1;
     return m;
   }, [validation, validationActive]);
-
-  if (!gatePassed) {
-    return <LoginGate onSubmit={handleGateSubmit} />;
-  }
 
   return (
     <HelpContext.Provider value={setFieldHelp}>
