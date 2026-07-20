@@ -1,7 +1,7 @@
-import { Card, Field, TextInput, Toggle } from "../components/ui";
+import { Card, Field, SegmentedControl, TextInput, Toggle } from "../components/ui";
 import CustomizePanel from "../components/CustomizePanel";
 import { tipFor } from "../lib/tips";
-import { isEnterprise } from "../types/config";
+import { isEnterprise, type ExposureMode } from "../types/config";
 import { isLabEnv, isProdEnv } from "../lib/envPresets";
 import type { StepProps } from "./types";
 
@@ -124,6 +124,48 @@ export default function EndpointsStep({ config, update, setAdvanced }: StepProps
           )}
         </div>
       </Card>
+
+      {enterprise && !lab && !c.useKubernetesService && (
+        <Card title="Exposure">
+          <Field
+            label="Exposure mode"
+            hint="Gateway API requires the CRDs and a controller (e.g. Traefik) installed separately."
+            help="Ingress renders classic NGINX-style Ingress resources. Gateway API renders HTTPRoute resources instead (chart 2.11+)."
+          >
+            <SegmentedControl<ExposureMode>
+              value={c.exposureMode}
+              onChange={(v) => update("endpoints", { exposureMode: v })}
+              options={[
+                { value: "ingress", label: "Ingress" },
+                { value: "gateway", label: "Gateway API" },
+              ]}
+            />
+          </Field>
+          {c.exposureMode === "gateway" && (
+            <>
+              <Field
+                label="GatewayClass name"
+                hint="From your installed Gateway controller (e.g. traefik)."
+                help="global.gatewayAPI.gateway.className — the GatewayClass provided by your controller."
+                helpPath="global.gatewayAPI.gateway.className"
+              >
+                <TextInput
+                  placeholder="traefik"
+                  value={c.gatewayClassName}
+                  onChange={(e) => update("endpoints", { gatewayClassName: e.target.value })}
+                />
+              </Field>
+              <Toggle
+                label="Create the Gateway resource"
+                description="Off = attach HTTPRoutes to an existing/shared Gateway."
+                help="global.gatewayAPI.gateway.create — whether the chart creates the Gateway or attaches routes to an existing one."
+                checked={c.gatewayCreate}
+                onChange={(v) => update("endpoints", { gatewayCreate: v })}
+              />
+            </>
+          )}
+        </Card>
+      )}
 
       <Card title="Integration & TLS">
         {!lab && (

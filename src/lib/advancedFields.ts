@@ -134,6 +134,35 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       placeholder: "1",
       flavor: "enterprise",
     },
+    // --- AI service (only relevant when AI is enabled) ---
+    {
+      path: "testkube-ai-service.replicaCount",
+      label: "AI service replicas",
+      type: "number",
+      placeholder: "1",
+      flavor: "enterprise",
+      when: (c) => c.core.ai,
+    },
+    {
+      path: "testkube-ai-service.logLevel",
+      label: "AI service log level",
+      type: "select",
+      options: [
+        { value: "info", label: "info" },
+        { value: "debug", label: "debug" },
+        { value: "warn", label: "warn" },
+        { value: "error", label: "error" },
+      ],
+      flavor: "enterprise",
+      when: (c) => c.core.ai,
+    },
+    {
+      path: "testkube-ai-service.runspaceBridge.enabled",
+      label: "AI runspace bridge (gRPC)",
+      type: "boolean",
+      flavor: "enterprise",
+      when: (c) => c.core.ai,
+    },
   ],
   database: [
     {

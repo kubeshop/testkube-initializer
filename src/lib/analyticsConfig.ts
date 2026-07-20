@@ -14,6 +14,9 @@ export function safeConfigSnapshot(config: TestkubeConfig): AnalyticsProps {
     core_api: config.core.api,
     core_worker: config.core.workerService,
     core_ai: config.core.ai,
+    ai_provider: config.core.ai ? config.ai.provider : undefined,
+    ai_credential_source: config.core.ai ? config.ai.credentialSource : undefined,
+    ai_postgres_mode: config.core.ai ? config.ai.postgresMode : undefined,
     database_type: config.database.type,
     database_external: config.database.external,
     database_connection_mode: config.database.connectionMode,
@@ -26,6 +29,7 @@ export function safeConfigSnapshot(config: TestkubeConfig): AnalyticsProps {
     auth_connector: config.auth.connector,
     dex_enabled: config.auth.dexEnabled,
     cert_manager: config.endpoints.certManager,
+    exposure_mode: config.endpoints.exposureMode,
     use_kubernetes_service: config.endpoints.useKubernetesService,
     has_domain: Boolean(config.endpoints.domain.trim()),
     advanced_override_count: Object.keys(config.advanced).filter((k) => {
