@@ -58,6 +58,10 @@ function minioInCluster(cfg: TestkubeConfig): boolean {
   return cfg.artifacts.type === "minio" && !cfg.artifacts.external;
 }
 
+function seaweedInCluster(cfg: TestkubeConfig): boolean {
+  return cfg.artifacts.type === "seaweedfs" && !cfg.artifacts.external;
+}
+
 function buildDexConnector(cfg: TestkubeConfig): string | null {
   const { connector, clientId, clientSecret, upstreamIssuerUrl } = cfg.auth;
   if (!clientId.trim() || !clientSecret.trim()) return null;
@@ -239,6 +243,15 @@ export function buildEnterpriseStorage(cfg: TestkubeConfig): Record<string, unkn
     if (internal) {
       storage.public = { endpoint: "localhost:9000", secure: false };
     }
+  } else if (seaweedInCluster(cfg)) {
+    // The SeaweedFS filer service is named after the Helm release:
+    // <release>-seaweedfs-filer. The chart auto-creates its S3 config secret
+    // from the default global storage creds, so credsSecretRef is unsupported.
+    storage.endpoint = `${artifacts.seaweedfsReleaseName || "testkube"}-seaweedfs-filer:8333`;
+    storage.secure = false;
+    if (internal) {
+      storage.public = { endpoint: "localhost:8333", secure: false };
+    }
   } else if (artifacts.external && artifacts.endpoint) {
     storage.endpoint = artifacts.endpoint;
     if (artifacts.connectionMode === "manual") {
@@ -309,4 +322,4 @@ export function buildEnterpriseDexBlock(cfg: TestkubeConfig): Record<string, unk
   };
 }
 
-export { minioInCluster, OAUTH_CLIENT_SECRET };
+export { minioInCluster, seaweedInCluster, OAUTH_CLIENT_SECRET };

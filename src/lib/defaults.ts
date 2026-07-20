@@ -1,6 +1,6 @@
 import type { ResourceSpec, TestkubeConfig } from "../types/config";
 
-export const APP_VERSION = "2.10";
+export const APP_VERSION = "2.11";
 
 const resources = (
   reqCpu: string,
@@ -53,6 +53,7 @@ export const defaultConfig: TestkubeConfig = {
     secretName: "",
     accessKeyIdKey: "accessKeyId",
     secretAccessKeyKey: "secretAccessKey",
+    seaweedfsReleaseName: "testkube",
     resources: resources("100m", "256Mi", "500m", "1Gi"),
   },
   nats: {
@@ -62,6 +63,21 @@ export const defaultConfig: TestkubeConfig = {
     persistent: true,
     storageSize: "10Gi",
     resources: resources("100m", "128Mi", "500m", "1Gi"),
+  },
+  ai: {
+    provider: "openai",
+    baseUrl: "",
+    agentModel: "gpt-4o",
+    tasksModel: "gpt-4o-mini",
+    embeddingsModel: "text-embedding-3-small",
+    credentialSource: "secret",
+    apiKey: "",
+    apiKeySecretRef: "testkube-ai-llm",
+    apiKeySecretKey: "apiKey",
+    postgresMode: "in-cluster",
+    postgresDsn: "",
+    postgresDsnSecretRef: "",
+    postgresDsnSecretKey: "dsn",
   },
   auth: {
     dexEnabled: true,
@@ -83,6 +99,9 @@ export const defaultConfig: TestkubeConfig = {
     useKubernetesService: false,
     certManager: true,
     certManagerIssuerRef: "letsencrypt-prod",
+    exposureMode: "ingress",
+    gatewayClassName: "",
+    gatewayCreate: true,
   },
   advanced: {},
 };

@@ -146,6 +146,16 @@ export default function OverviewStep({ config, goToStep, onDownloadYaml }: StepP
             value={`${config.artifacts.type}${config.artifacts.external ? " (external)" : ""}`}
           />
           <Summary label="NATS" value={config.nats.embedded ? "embedded" : "external"} />
+          {enterprise && (
+            <Summary
+              label="AI"
+              value={
+                config.core.ai
+                  ? `${config.ai.provider} · ${config.ai.agentModel || "?"} · pg:${config.ai.postgresMode}`
+                  : "disabled"
+              }
+            />
+          )}
           <Summary label="Domain" value={config.endpoints.domain} />
         </div>
       </Card>

@@ -125,6 +125,68 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
     );
   }
 
+  if (
+    enterprise &&
+    !lab &&
+    !cfg.endpoints.useKubernetesService &&
+    cfg.endpoints.exposureMode === "gateway" &&
+    !cfg.endpoints.gatewayClassName.trim()
+  ) {
+    err(
+      "gateway-class",
+      STEP.endpoints,
+      "GatewayClass name is required when exposing via Gateway API (e.g. traefik)."
+    );
+  }
+
+  // --- AI service (Enterprise) ---
+  if (enterprise && cfg.core.ai) {
+    const ai = cfg.ai;
+
+    if (!ai.agentModel.trim()) {
+      err("ai-agent-model", STEP.core, "AI agent model is required (e.g. gpt-4o).");
+    }
+
+    const providerNeedsUrl = ai.provider !== "openai";
+    if (providerNeedsUrl && !ai.baseUrl.trim()) {
+      err(
+        "ai-base-url",
+        STEP.core,
+        "A base URL is required for Azure OpenAI / custom LLM providers."
+      );
+    }
+    if (ai.baseUrl.trim() && !isHttpUrl(ai.baseUrl.trim(), true)) {
+      err("ai-base-url-fmt", STEP.core, "AI base URL must be a full http(s) URL.");
+    }
+
+    if (ai.credentialSource === "inline" && !ai.apiKey.trim()) {
+      err("ai-api-key", STEP.core, "LLM API key is required in Inline mode.");
+    }
+    if (ai.credentialSource === "secret" && !ai.apiKeySecretRef.trim()) {
+      err(
+        "ai-api-secret",
+        STEP.core,
+        "LLM API key Secret name is required in Existing Secret mode."
+      );
+    }
+
+    if (ai.postgresMode === "external" && !ai.postgresDsn.trim() && !ai.postgresDsnSecretRef.trim()) {
+      err(
+        "ai-postgres",
+        STEP.core,
+        "External AI PostgreSQL requires a DSN or a DSN Secret reference."
+      );
+    }
+
+    if (!cfg.core.dashboard) {
+      warn(
+        "ai-dashboard",
+        STEP.core,
+        "AI features surface in the dashboard — enable the Dashboard component to use them."
+      );
+    }
+  }
+
   // --- Database (external) ---
   if (cfg.database.external) {
     const m = cfg.database.connectionMode;
@@ -142,6 +204,13 @@ export function validate(cfg: TestkubeConfig): ValidationResult {
   // --- Artifacts store ---
   if (cfg.artifacts.external && !cfg.artifacts.endpoint.trim()) {
     err("art-endpoint", STEP.artifacts, "Storage endpoint is required for external object storage.");
+  }
+  if (enterprise && cfg.artifacts.type === "seaweedfs" && !cfg.artifacts.seaweedfsReleaseName.trim()) {
+    err(
+      "art-seaweed-release",
+      STEP.artifacts,
+      "Helm release name is required for SeaweedFS (used to build the in-cluster filer endpoint)."
+    );
   }
   {
     const m = cfg.artifacts.connectionMode;
