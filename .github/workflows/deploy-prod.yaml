@@ -1,0 +1,116 @@
+name: Deploy Prod
+
+# Opens a gated PR in testkube-deployment (envs/prd) when a semver release tag
+# (X.Y.Z) is published. A human reviews/merges that PR — nothing auto-deploys to
+# prod. Mirrors the prod pattern of the other services (pinned image, manual bump).
+# Uses CI_BOT_TOKEN (same as testkube / testkube-cloud-api) for cross-repo access.
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+concurrency:
+  group: deploy-prod-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  bump-deployment:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Resolve image tag
+        id: tag
+        run: |
+          TAG="${{ github.ref_name }}"
+          echo "value=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Release tag: ${TAG}"
+
+      - name: Verify access to testkube-deployment
+        id: auth
+        env:
+          CI_BOT_TOKEN: ${{ secrets.CI_BOT_TOKEN }}
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          pick_token() {
+            for NAME in CI_BOT_TOKEN PAT_TOKEN; do
+              eval "T=\${${NAME}}"
+              [ -z "${T}" ] && continue
+              HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+                -H "Authorization: Bearer ${T}" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/kubeshop/testkube-deployment")
+              if [ "${HTTP}" = "200" ]; then
+                echo "source=${NAME}" >> "$GITHUB_OUTPUT"
+                return 0
+              fi
+              echo "::warning::${NAME} cannot read kubeshop/testkube-deployment (HTTP ${HTTP})"
+            done
+            echo "::error::No token can access kubeshop/testkube-deployment."
+            echo "Configure CI_BOT_TOKEN (preferred, same as kubeshop/testkube) or grant PAT_TOKEN access to the private repo + kubeshop SSO."
+            exit 1
+          }
+          pick_token
+
+      - name: Checkout testkube-deployment
+        uses: actions/checkout@v4
+        with:
+          repository: kubeshop/testkube-deployment
+          token: ${{ secrets.CI_BOT_TOKEN || secrets.PAT_TOKEN }}
+          path: testkube-deployment
+
+      - name: Configure Git
+        working-directory: testkube-deployment
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+      - name: Bump initializer image (prod)
+        working-directory: testkube-deployment
+        env:
+          TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          KUSTOMIZE=envs/prd/initializer/kustomize/kustomization.yaml
+          DEPLOY=envs/prd/initializer/kustomize/base/deployment.yaml
+
+          if [ ! -f "$KUSTOMIZE" ] || [ ! -f "$DEPLOY" ]; then
+            echo "Initializer prod kustomize paths not found in testkube-deployment"
+            exit 1
+          fi
+
+          sed -i "s/newTag: .*/newTag: ${TAG}/" "$KUSTOMIZE"
+          sed -i "s|image: kubeshop/testkube-initializer:.*|image: kubeshop/testkube-initializer:${TAG}|" "$DEPLOY"
+
+      - name: Create deployment pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.CI_BOT_TOKEN || secrets.PAT_TOKEN }}
+          path: testkube-deployment
+          commit-message: "chore(prod): bump testkube-initializer to ${{ steps.tag.outputs.value }}"
+          title: "chore(prod): bump testkube-initializer to ${{ steps.tag.outputs.value }}"
+          body: |
+            Gated production image bump for **testkube-initializer**.
+
+            - **Image:** `kubeshop/testkube-initializer:${{ steps.tag.outputs.value }}`
+            - **Release tag:** `${{ steps.tag.outputs.value }}`
+            - **Env:** `envs/prd/initializer`
+
+            Review and merge to roll out to prod (`initializer.testkube.io`). Argo CD syncs after merge.
+          branch: bump/prod-testkube-initializer-${{ steps.tag.outputs.value }}
+          delete-branch: true
+          labels: |
+            automated
+            testkube-initializer
+            prod
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Prod deployment PR"
+            echo ""
+            echo "- **Image tag:** \`${{ steps.tag.outputs.value }}\`"
+            echo "- **Release tag:** \`${{ github.ref_name }}\`"
+            echo "- **Env:** \`envs/prd/initializer\`"
+          } >> "$GITHUB_STEP_SUMMARY"
