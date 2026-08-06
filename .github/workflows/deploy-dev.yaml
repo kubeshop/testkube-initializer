@@ -43,8 +43,7 @@ concurrency:
 jobs:
   bump-deployment:
     name: Bump deployment
-    # Git/PR bump only — no Docker. Prefer GitHub-hosted to avoid Depot runner contention.
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04
     permissions:
       contents: read
       actions: read
