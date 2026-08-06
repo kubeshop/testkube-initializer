@@ -1,13 +1,30 @@
 name: Deploy Dev
 
 # Opens (or updates) a PR in testkube-deployment after a successful main build.
+# Prefer being called from Build and Push (workflow_call). workflow_dispatch is for recovery.
 # Uses CI_BOT_TOKEN (same as testkube / testkube-cloud-api) for cross-repo access.
 
 on:
-  workflow_run:
-    workflows: ["Build and Push"]
-    types: [completed]
-    branches: [main]
+  workflow_call:
+    inputs:
+      image_tag:
+        description: Image tag to bump (e.g. 2.11.0-dev.32)
+        required: true
+        type: string
+      commit_sha:
+        description: Initializer commit SHA for the PR body
+        required: true
+        type: string
+      run_number:
+        description: Triggering Build and Push run number
+        required: false
+        type: string
+        default: ""
+      run_url:
+        description: Triggering Build and Push run URL
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       image_tag:
@@ -20,16 +37,13 @@ on:
         type: string
 
 concurrency:
-  group: deploy-dev-${{ github.event.workflow_run.head_branch || github.ref }}
+  group: deploy-dev-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   bump-deployment:
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'push')
-    runs-on: ubuntu-latest
+    name: Bump deployment
+    runs-on: depot-ubuntu-22.04
     permissions:
       contents: read
       actions: read
@@ -40,36 +54,32 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           INPUT_TAG: ${{ inputs.image_tag }}
           INPUT_SHA: ${{ inputs.commit_sha }}
+          INPUT_RUN_NUMBER: ${{ inputs.run_number }}
+          INPUT_RUN_URL: ${{ inputs.run_url }}
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ -n "${INPUT_TAG}" ]; then
-              TAG="${INPUT_TAG}"
-              SHA="${INPUT_SHA:-${{ github.sha }}}"
-              RUN_NUM="manual"
-              RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            else
-              RUN_JSON=$(gh api "repos/${{ github.repository }}/actions/workflows/build-push.yaml/runs?branch=main&event=push&status=success&per_page=1")
-              RUN_NUM=$(echo "$RUN_JSON" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).workflow_runs[0].run_number')
-              SHA=$(echo "$RUN_JSON" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).workflow_runs[0].head_sha')
-              RUN_URL=$(echo "$RUN_JSON" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).workflow_runs[0].html_url')
-              gh api "repos/${{ github.repository }}/contents/package.json?ref=${SHA}" --jq .content | base64 -d > /tmp/pkg.json
-              VERSION=$(node -pe 'JSON.parse(require("fs").readFileSync("/tmp/pkg.json","utf8")).version')
-              TAG="${VERSION}-dev.${RUN_NUM}"
-            fi
+
+          if [ -n "${INPUT_TAG}" ]; then
+            TAG="${INPUT_TAG}"
+            SHA="${INPUT_SHA:-${{ github.sha }}}"
+            RUN_NUM="${INPUT_RUN_NUMBER:-manual}"
+            RUN_URL="${INPUT_RUN_URL:-${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}}"
           else
-            SHA="${{ github.event.workflow_run.head_sha }}"
-            RUN_NUM="${{ github.event.workflow_run.run_number }}"
-            RUN_URL="${{ github.event.workflow_run.html_url }}"
+            RUN_JSON=$(gh api "repos/${{ github.repository }}/actions/workflows/build-push.yaml/runs?branch=main&event=push&status=success&per_page=1")
+            RUN_NUM=$(echo "$RUN_JSON" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).workflow_runs[0].run_number')
+            SHA=$(echo "$RUN_JSON" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).workflow_runs[0].head_sha')
+            RUN_URL=$(echo "$RUN_JSON" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).workflow_runs[0].html_url')
             gh api "repos/${{ github.repository }}/contents/package.json?ref=${SHA}" --jq .content | base64 -d > /tmp/pkg.json
             VERSION=$(node -pe 'JSON.parse(require("fs").readFileSync("/tmp/pkg.json","utf8")).version')
             TAG="${VERSION}-dev.${RUN_NUM}"
           fi
 
-          echo "value=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
-          echo "run_number=${RUN_NUM}" >> "$GITHUB_OUTPUT"
-          echo "run_url=${RUN_URL}" >> "$GITHUB_OUTPUT"
+          {
+            echo "value=${TAG}"
+            echo "sha=${SHA}"
+            echo "run_number=${RUN_NUM}"
+            echo "run_url=${RUN_URL}"
+          } >> "$GITHUB_OUTPUT"
           echo "Image tag: ${TAG} (sha=${SHA})"
 
       - name: Verify access to testkube-deployment
@@ -120,7 +130,7 @@ jobs:
           DEPLOY=envs/dev/initializer/kustomize/base/deployment.yaml
 
           if [ ! -f "$KUSTOMIZE" ] || [ ! -f "$DEPLOY" ]; then
-            echo "Initializer kustomize paths not found in testkube-deployment (merge PR #561 first?)"
+            echo "Initializer kustomize paths not found in testkube-deployment"
             exit 1
           fi
 

@@ -31,6 +31,8 @@ jobs:
     permissions:
       contents: read
       id-token: write # needed for depot
+    outputs:
+      image_tag: ${{ steps.image_tag.outputs.value }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,6 +40,15 @@ jobs:
       - name: Read package version
         id: pkg
         run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve image tag
+        id: image_tag
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "value=${{ steps.pkg.outputs.version }}-dev.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ steps.pkg.outputs.version }}-manual.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Set up Depot CLI
         uses: depot/setup-action@15c09a5f77a0840ad4bce955686522a257853461 # v1.7.1
@@ -87,3 +98,17 @@ jobs:
             echo '${{ steps.meta.outputs.tags }}' | sed 's/^/- `/' | sed 's/$/`/'
             echo "- **Push:** ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.dry_run != true) }}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # Call Deploy Dev directly after a successful main push build.
+  # Do not rely on workflow_run — GitHub often drops that event for this repo.
+  deploy-dev:
+    name: Deploy Dev
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-dev.yaml
+    secrets: inherit
+    with:
+      image_tag: ${{ needs.build.outputs.image_tag }}
+      commit_sha: ${{ github.sha }}
+      run_number: ${{ github.run_number }}
+      run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
