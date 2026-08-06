@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SiteHeader from "./components/SiteHeader";
-import { captureEvent, wizardSessionSeconds } from "./lib/analytics";
+import { captureEvent, identifyUser, wizardSessionSeconds } from "./lib/analytics";
 import {
   safeConfigSnapshot,
   trackAdvancedFieldChange,
@@ -74,6 +74,12 @@ export default function App() {
     captureEvent("env_type_selected", { env_type: config.initial.envType });
     prevEnvType.current = config.initial.envType;
   }, [config.initial.envType]);
+
+  useEffect(() => {
+    identifyUser(config.initial.adminEmail, {
+      company: config.initial.companyName,
+    });
+  }, [config.initial.adminEmail, config.initial.companyName]);
 
   useEffect(() => {
     if (active !== STEPS.length - 1 || wizardCompletedRef.current) return;
@@ -158,6 +164,9 @@ export default function App() {
         });
         return;
       }
+      identifyUser(config.initial.adminEmail, {
+        company: config.initial.companyName,
+      });
       const snapshot = safeConfigSnapshot(config);
       captureEvent("yaml_downloaded", { ...snapshot, source });
       captureEvent("config_exported", { ...snapshot, source });
