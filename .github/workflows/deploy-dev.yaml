@@ -37,8 +37,9 @@ on:
         type: string
 
 concurrency:
-  group: deploy-dev-${{ github.ref }}
-  cancel-in-progress: false
+  # Include run_id so a stuck queued run cannot block recovery dispatches.
+  group: deploy-dev-${{ github.ref }}-${{ github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   bump-deployment:
