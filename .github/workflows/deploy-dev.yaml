@@ -8,35 +8,69 @@ on:
     workflows: ["Build and Push"]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Image tag to bump (e.g. 2.11.0-dev.32). Leave empty to use latest successful Build and Push on main.
+        required: false
+        type: string
+      commit_sha:
+        description: Initializer commit SHA for the PR body (optional when image_tag is set)
+        required: false
+        type: string
 
 concurrency:
-  group: deploy-dev-${{ github.event.workflow_run.head_branch }}
+  group: deploy-dev-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: false
 
 jobs:
   bump-deployment:
     if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push'
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     steps:
-      - name: Checkout initializer (for package version)
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ github.repository }}
-          ref: ${{ github.event.workflow_run.head_sha }}
-          path: initializer
-
-      - name: Resolve image tag
-        id: tag
+      - name: Resolve build context
+        id: ctx
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.image_tag }}
+          INPUT_SHA: ${{ inputs.commit_sha }}
         run: |
-          VERSION=$(node -p "require('./initializer/package.json').version")
-          RUN_NUM="${{ github.event.workflow_run.run_number }}"
-          TAG="${VERSION}-dev.${RUN_NUM}"
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ -n "${INPUT_TAG}" ]; then
+              TAG="${INPUT_TAG}"
+              SHA="${INPUT_SHA:-${{ github.sha }}}"
+              RUN_NUM="manual"
+              RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            else
+              RUN_JSON=$(gh api "repos/${{ github.repository }}/actions/workflows/build-push.yaml/runs?branch=main&event=push&status=success&per_page=1")
+              RUN_NUM=$(echo "$RUN_JSON" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).workflow_runs[0].run_number')
+              SHA=$(echo "$RUN_JSON" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).workflow_runs[0].head_sha')
+              RUN_URL=$(echo "$RUN_JSON" | node -pe 'JSON.parse(require("fs").readFileSync(0,"utf8")).workflow_runs[0].html_url')
+              gh api "repos/${{ github.repository }}/contents/package.json?ref=${SHA}" --jq .content | base64 -d > /tmp/pkg.json
+              VERSION=$(node -pe 'JSON.parse(require("fs").readFileSync("/tmp/pkg.json","utf8")).version')
+              TAG="${VERSION}-dev.${RUN_NUM}"
+            fi
+          else
+            SHA="${{ github.event.workflow_run.head_sha }}"
+            RUN_NUM="${{ github.event.workflow_run.run_number }}"
+            RUN_URL="${{ github.event.workflow_run.html_url }}"
+            gh api "repos/${{ github.repository }}/contents/package.json?ref=${SHA}" --jq .content | base64 -d > /tmp/pkg.json
+            VERSION=$(node -pe 'JSON.parse(require("fs").readFileSync("/tmp/pkg.json","utf8")).version')
+            TAG="${VERSION}-dev.${RUN_NUM}"
+          fi
+
           echo "value=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "Image tag: ${TAG}"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "run_number=${RUN_NUM}" >> "$GITHUB_OUTPUT"
+          echo "run_url=${RUN_URL}" >> "$GITHUB_OUTPUT"
+          echo "Image tag: ${TAG} (sha=${SHA})"
 
       - name: Verify access to testkube-deployment
         id: auth
@@ -80,7 +114,7 @@ jobs:
       - name: Bump initializer image
         working-directory: testkube-deployment
         env:
-          TAG: ${{ steps.tag.outputs.value }}
+          TAG: ${{ steps.ctx.outputs.value }}
         run: |
           KUSTOMIZE=envs/dev/initializer/kustomize/kustomization.yaml
           DEPLOY=envs/dev/initializer/kustomize/base/deployment.yaml
@@ -98,14 +132,14 @@ jobs:
         with:
           token: ${{ secrets.CI_BOT_TOKEN || secrets.PAT_TOKEN }}
           path: testkube-deployment
-          commit-message: "chore(dev): bump testkube-initializer to ${{ steps.tag.outputs.value }}"
-          title: "chore(dev): bump testkube-initializer to ${{ steps.tag.outputs.value }}"
+          commit-message: "chore(dev): bump testkube-initializer to ${{ steps.ctx.outputs.value }}"
+          title: "chore(dev): bump testkube-initializer to ${{ steps.ctx.outputs.value }}"
           body: |
-            Automated image bump from [testkube-initializer workflow run ${{ github.event.workflow_run.run_number }}](${{ github.event.workflow_run.html_url }}).
+            Automated image bump from [testkube-initializer workflow run ${{ steps.ctx.outputs.run_number }}](${{ steps.ctx.outputs.run_url }}).
 
-            - **Image:** `kubeshop/testkube-initializer:${{ steps.tag.outputs.value }}`
-            - **Commit:** `${{ github.event.workflow_run.head_sha }}`
-          branch: bump/testkube-initializer-${{ steps.tag.outputs.value }}
+            - **Image:** `kubeshop/testkube-initializer:${{ steps.ctx.outputs.value }}`
+            - **Commit:** `${{ steps.ctx.outputs.sha }}`
+          branch: bump/testkube-initializer-${{ steps.ctx.outputs.value }}
           delete-branch: true
           labels: |
             automated
@@ -118,6 +152,6 @@ jobs:
           {
             echo "### Dev deployment PR"
             echo ""
-            echo "- **Image tag:** \`${{ steps.tag.outputs.value }}\`"
-            echo "- **Trigger run:** [Build and Push #${{ github.event.workflow_run.run_number }}](${{ github.event.workflow_run.html_url }})"
+            echo "- **Image tag:** \`${{ steps.ctx.outputs.value }}\`"
+            echo "- **Trigger:** [${{ steps.ctx.outputs.run_number }}](${{ steps.ctx.outputs.run_url }})"
           } >> "$GITHUB_STEP_SUMMARY"
