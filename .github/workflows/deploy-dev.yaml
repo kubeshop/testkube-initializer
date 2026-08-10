@@ -8,7 +8,7 @@ on:
   workflow_call:
     inputs:
       image_tag:
-        description: Image tag to bump (e.g. 2.12.0-dev.32)
+        description: Image tag to bump (e.g. 2.12.1-dev.32)
         required: true
         type: string
       commit_sha:
@@ -28,7 +28,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: Image tag to bump (e.g. 2.12.0-dev.32). Leave empty to use latest successful Build and Push on main.
+        description: Image tag to bump (e.g. 2.12.1-dev.32). Leave empty to use latest successful Build and Push on main.
         required: false
         type: string
       commit_sha:
