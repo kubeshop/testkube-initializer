@@ -58,6 +58,26 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       type: "boolean",
       flavor: "oss",
     },
+    // --- Workflow runner defaults (OSS chart >= 2.12) ---
+    {
+      path: "testkube-api.defaultImagePullPolicy",
+      label: "Runner image pull policy",
+      type: "select",
+      options: [
+        { value: "IfNotPresent", label: "IfNotPresent" },
+        { value: "Always", label: "Always" },
+        { value: "Never", label: "Never" },
+      ],
+      flavor: "oss",
+    },
+    {
+      path: "testkube-api.defaultRunnerResources",
+      label: "Runner default resources (YAML)",
+      type: "yaml",
+      placeholder:
+        "requests:\n  cpu: 100m\n  memory: 128Mi\nlimits:\n  cpu: 500m\n  memory: 512Mi",
+      flavor: "oss",
+    },
     {
       path: "testkube-cloud-api.scim.enabled",
       label: "SCIM provisioning",
@@ -74,6 +94,66 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       path: "testkube-cloud-api.api.migrations.enabled",
       label: "Run DB migrations",
       type: "boolean",
+      flavor: "enterprise",
+    },
+    // --- Control Plane API autoscaling / shutdown (Enterprise chart >= 2.335 / app 2.12) ---
+    {
+      path: "testkube-cloud-api.autoscaling.enabled",
+      label: "API autoscaling (HPA)",
+      type: "boolean",
+      flavor: "enterprise",
+    },
+    {
+      path: "testkube-cloud-api.autoscaling.minReplicas",
+      label: "API HPA min replicas",
+      type: "number",
+      placeholder: "1",
+      flavor: "enterprise",
+      when: (c) => c.advanced["testkube-cloud-api.autoscaling.enabled"] === true,
+    },
+    {
+      path: "testkube-cloud-api.autoscaling.maxReplicas",
+      label: "API HPA max replicas",
+      type: "number",
+      placeholder: "10",
+      flavor: "enterprise",
+      when: (c) => c.advanced["testkube-cloud-api.autoscaling.enabled"] === true,
+    },
+    {
+      path: "testkube-cloud-api.autoscaling.targetCPUUtilizationPercentage",
+      label: "API HPA target CPU %",
+      type: "number",
+      placeholder: "80",
+      flavor: "enterprise",
+      when: (c) => c.advanced["testkube-cloud-api.autoscaling.enabled"] === true,
+    },
+    {
+      path: "testkube-cloud-api.autoscaling.targetMemoryUtilizationPercentage",
+      label: "API HPA target memory %",
+      type: "number",
+      placeholder: "80",
+      flavor: "enterprise",
+      when: (c) => c.advanced["testkube-cloud-api.autoscaling.enabled"] === true,
+    },
+    {
+      path: "testkube-cloud-api.terminationGracePeriodSeconds",
+      label: "API termination grace period (s)",
+      type: "number",
+      placeholder: "30",
+      flavor: "enterprise",
+    },
+    {
+      path: "testkube-cloud-api.lifecycle.preStop.sleepSeconds",
+      label: "API preStop sleep (s)",
+      type: "number",
+      placeholder: "0",
+      flavor: "enterprise",
+    },
+    {
+      path: "testkube-cloud-api.gracefulShutdownTimeout",
+      label: "API graceful shutdown timeout",
+      type: "text",
+      placeholder: "25s",
       flavor: "enterprise",
     },
     // --- Scheduling (cluster-wide, both flavors) ---

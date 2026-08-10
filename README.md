@@ -54,5 +54,6 @@ The wizard walks through 8 steps:
 The selected **Env type** decides whether the output targets the OSS chart
 (`testkube/testkube`) or the Enterprise chart (`testkube/testkube-enterprise`).
 
-> Note: the generated values cover the high-level decisions from the wizard.
+> Note: the generated values target Testkube **2.12.1** charts
+> (OSS `testkube/testkube` 2.12.x, Enterprise `testkube-enterprise` 2.335.x).
 > Review against your chart version before applying to production.
