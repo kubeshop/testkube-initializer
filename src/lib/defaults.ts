@@ -1,6 +1,6 @@
 import type { ResourceSpec, TestkubeConfig } from "../types/config";
 
-export const APP_VERSION = "2.11";
+export const APP_VERSION = "2.12";
 
 const resources = (
   reqCpu: string,
