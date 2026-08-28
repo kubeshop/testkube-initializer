@@ -96,6 +96,55 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       type: "boolean",
       flavor: "enterprise",
     },
+    // --- GitHub integration + Insights metrics (Enterprise chart >= 2.336 / app 2.13) ---
+    {
+      path: "testkube-cloud-api.api.features.gitIntegration",
+      label: "Advanced GitHub integration",
+      type: "boolean",
+      flavor: "enterprise",
+    },
+    {
+      path: "testkube-cloud-api.api.github.webhookSecretRef",
+      label: "GitHub webhook secret ref",
+      type: "text",
+      placeholder: "github-webhook-secret",
+      flavor: "enterprise",
+      when: (c) =>
+        c.advanced["testkube-cloud-api.api.features.gitIntegration"] === true,
+    },
+    {
+      path: "testkube-cloud-api.api.github.webhookSecretKey",
+      label: "GitHub webhook secret key",
+      type: "text",
+      placeholder: "webhook-secret",
+      flavor: "enterprise",
+      when: (c) =>
+        c.advanced["testkube-cloud-api.api.features.gitIntegration"] === true,
+    },
+    {
+      path: "testkube-cloud-api.api.features.workflowCustomLabelMetricsEnabled",
+      label: "Custom workflow label metrics",
+      type: "boolean",
+      flavor: "enterprise",
+    },
+    {
+      path: "testkube-cloud-api.api.features.workflowCustomLabelMetricsMaxPerRun",
+      label: "Max custom labels per run",
+      type: "number",
+      placeholder: "10",
+      flavor: "enterprise",
+      when: (c) =>
+        c.advanced[
+          "testkube-cloud-api.api.features.workflowCustomLabelMetricsEnabled"
+        ] === true,
+    },
+    // --- Test Authoring runtime (Enterprise chart >= 2.336 / app 2.13) ---
+    {
+      path: "global.testAuthoring.enabled",
+      label: "Test Authoring runtime",
+      type: "boolean",
+      flavor: "enterprise",
+    },
     // --- Control Plane API autoscaling / shutdown (Enterprise chart >= 2.335 / app 2.12) ---
     {
       path: "testkube-cloud-api.autoscaling.enabled",
@@ -239,6 +288,38 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
     {
       path: "testkube-ai-service.runspaceBridge.enabled",
       label: "AI runspace bridge (gRPC)",
+      type: "boolean",
+      flavor: "enterprise",
+      when: (c) => c.core.ai,
+    },
+    // --- AI internal credential gate (Enterprise chart >= 2.336 / app 2.13) ---
+    {
+      path: "testkube-ai-service.internalSecret.existingSecret",
+      label: "AI internal secret name",
+      type: "text",
+      placeholder: "testkube-ai-internal-secret",
+      flavor: "enterprise",
+      when: (c) => c.core.ai,
+    },
+    {
+      path: "testkube-ai-service.internalSecret.key",
+      label: "AI internal secret key",
+      type: "text",
+      placeholder: "secret",
+      flavor: "enterprise",
+      when: (c) => c.core.ai,
+    },
+    {
+      path: "testkube-cloud-api.ai.internalSecret.existingSecret",
+      label: "API AI internal secret name",
+      type: "text",
+      placeholder: "testkube-ai-internal-secret",
+      flavor: "enterprise",
+      when: (c) => c.core.ai,
+    },
+    {
+      path: "testkube-cloud-api.ai.enforceInternalSecret",
+      label: "Enforce AI internal secret",
       type: "boolean",
       flavor: "enterprise",
       when: (c) => c.core.ai,
