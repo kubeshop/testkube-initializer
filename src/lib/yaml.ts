@@ -141,6 +141,25 @@ function buildAiPostgres(ai: AiConfig): Dict {
 // Secret key holding the Control Plane PostgreSQL DSN, mirroring MONGO_DSN.
 const ENT_POSTGRES_DSN_KEY = "POSTGRES_DSN";
 
+// Database the charts' default PostgreSQL DSNs point at.
+const IN_CLUSTER_PG_DATABASE = "backend";
+
+// Values for the bundled PostgreSQL subchart. Its image runs the upstream
+// postgres entrypoint, which creates the initial database from POSTGRES_DB,
+// while the chart only passes the Bitnami-style POSTGRES_DATABASE. Without the
+// extra variable the database named in the generated DSN is never created, and
+// the Control Plane migration job fails to connect.
+function inClusterPostgres(resources?: ResourceSpec): Dict {
+  return {
+    enabled: true,
+    auth: { database: IN_CLUSTER_PG_DATABASE },
+    primary: {
+      extraEnvVars: [{ name: "POSTGRES_DB", value: IN_CLUSTER_PG_DATABASE }],
+      ...(resources ? { resources: resourcesToValues(resources) } : {}),
+    },
+  };
+}
+
 function buildEnterpriseMongo(cfg: TestkubeConfig): Dict {
   const { database } = cfg;
   const enabled = database.type === "mongodb";
@@ -321,17 +340,11 @@ function buildEnterpriseValues(cfg: TestkubeConfig): Dict {
           ...(useGateway ? { gatewayAPI: { createHTTPRoute: true } } : {}),
         }
       : { enabled: false },
-    // The chart's default global.postgres.dsn targets the "backend" database, so
-    // provision that DB name to keep the in-cluster setup plug-and-play.
     ...(pgSubchart
       ? {
-          postgresql: {
-            enabled: true,
-            auth: { database: "backend" },
-            ...(pgPrimaryInCluster
-              ? { primary: { resources: resourcesToValues(database.resources) } }
-              : {}),
-          },
+          postgresql: inClusterPostgres(
+            pgPrimaryInCluster ? database.resources : undefined
+          ),
         }
       : {}),
     dex: {
@@ -382,13 +395,10 @@ function buildOssValues(cfg: TestkubeConfig): Dict {
       enabled: mongoInCluster,
       ...(mongoInCluster ? { resources: resourcesToValues(database.resources) } : {}),
     },
-    postgresql: {
-      enabled: pgInCluster,
-      // The bundled PostgreSQL takes resources under `primary`, unlike MongoDB.
-      ...(pgInCluster
-        ? { primary: { resources: resourcesToValues(database.resources) } }
-        : {}),
-    },
+    // The bundled PostgreSQL takes resources under `primary`, unlike MongoDB.
+    postgresql: pgInCluster
+      ? inClusterPostgres(database.resources)
+      : { enabled: false },
     // NATS subchart config; the subchart is deployed via the
     // `testkube-api.nats.enabled` condition below.
     nats: nats.embedded
