@@ -43,7 +43,7 @@ export const STEPS: StepMeta[] = [
     title: "Database",
     panelTitle: "Configuration Panel — Database",
     help: [
-      "Testkube stores results in MongoDB (default) or PostgreSQL.",
+      "Testkube stores results in PostgreSQL (default) or MongoDB.",
       "Use an external managed database in production, or let the chart deploy an in-cluster instance for labs.",
       "Connection strings can be auto-generated, set manually, or pulled from Vault.",
     ],
