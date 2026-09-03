@@ -61,7 +61,9 @@ export default function DatabaseStep({ config, update, setAdvanced }: StepProps)
               label="Secret name"
               hint={
                 isEnterprise(config.initial.envType)
-                  ? "Secret must contain key MONGO_DSN."
+                  ? c.type === "mongodb"
+                    ? "Secret must contain key MONGO_DSN."
+                    : "Secret must contain key POSTGRES_DSN."
                   : c.type === "mongodb"
                     ? "Secret must contain key mongo-dsn."
                     : "Secret must contain key postgres-dsn."
