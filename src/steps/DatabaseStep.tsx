@@ -13,14 +13,14 @@ export default function DatabaseStep({ config, update, setAdvanced }: StepProps)
       <Card title="Engine">
         <Field
           label="Database Type"
-          help="Backend store for test results and history. MongoDB is the default; PostgreSQL is also supported."
+          help="Backend store for test results and history. PostgreSQL is the default; MongoDB remains supported for existing installations."
         >
           <SegmentedControl<DatabaseType>
             value={c.type}
             onChange={(v) => update("database", { type: v })}
             options={[
-              { value: "mongodb", label: "MongoDB" },
               { value: "postgresql", label: "PostgreSQL" },
+              { value: "mongodb", label: "MongoDB" },
             ]}
           />
         </Field>
@@ -61,7 +61,9 @@ export default function DatabaseStep({ config, update, setAdvanced }: StepProps)
               label="Secret name"
               hint={
                 isEnterprise(config.initial.envType)
-                  ? "Secret must contain key MONGO_DSN."
+                  ? c.type === "mongodb"
+                    ? "Secret must contain key MONGO_DSN."
+                    : "Secret must contain key POSTGRES_DSN."
                   : c.type === "mongodb"
                     ? "Secret must contain key mongo-dsn."
                     : "Secret must contain key postgres-dsn."

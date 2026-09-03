@@ -44,7 +44,7 @@ The wizard walks through 8 steps:
 
 1. **Initial Config** — company, admin email, Kubernetes type, env type (OSS / Enterprise Prod / Lab), license, orgs & environments
 2. **Core Components** — Dashboard, API, Worker Service, AI
-3. **Database** — MongoDB / PostgreSQL, external vs in-cluster, connection source, resources
+3. **Database** — PostgreSQL (default) / MongoDB, external vs in-cluster, connection source, resources
 4. **Artifacts Store** — SeaweedFS / AWS S3 / MinIO, credentials source, resources
 5. **NATS** — embedded vs external, JetStream, persistence
 6. **Authentication** — Dex identity broker + connector (Enterprise)

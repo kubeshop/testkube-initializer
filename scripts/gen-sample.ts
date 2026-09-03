@@ -80,6 +80,7 @@ const entSecret: TestkubeConfig = {
   ...enterprise,
   database: {
     ...enterprise.database,
+    type: "mongodb",
     external: true,
     connectionMode: "secret",
     secretName: "testkube-mongo-dsn",
