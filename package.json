@@ -1,7 +1,7 @@
 {
   "name": "testkube-initializer",
   "private": true,
-  "version": "2.13.1",
+  "version": "2.13.2",
   "type": "module",
   "description": "Frontend wizard to generate Helm values.yaml for deploying Testkube (OSS & Enterprise).",
   "scripts": {
