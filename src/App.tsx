@@ -76,12 +76,6 @@ export default function App() {
   }, [config.initial.envType]);
 
   useEffect(() => {
-    identifyUser(config.initial.adminEmail, {
-      company: config.initial.companyName,
-    });
-  }, [config.initial.adminEmail, config.initial.companyName]);
-
-  useEffect(() => {
     if (active !== STEPS.length - 1 || wizardCompletedRef.current) return;
     wizardCompletedRef.current = true;
     captureEvent("wizard_completed", {
