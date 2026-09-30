@@ -4,6 +4,7 @@ import { APP_VERSION } from "./defaults";
 
 let enabled = false;
 let wizardOpenedAt: number | null = null;
+let lastIdentity: string | null = null;
 
 export function wizardSessionSeconds(): number | undefined {
   if (wizardOpenedAt === null) return undefined;
@@ -16,7 +17,7 @@ export function wizardSessionSeconds(): number | undefined {
  */
 export type AnalyticsProps = Record<string, string | number | boolean | undefined>;
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
 export function initAnalytics(): void {
   const key = import.meta.env.VITE_POSTHOG_KEY;
@@ -39,6 +40,10 @@ export function initAnalytics(): void {
 /**
  * Link anonymous wizard activity to the Admin Email person in PostHog.
  * No-op until the address looks valid. Company is stored as a person property.
+ *
+ * Only call this once the address is final — on export, not while the field is
+ * being edited. Every distinct id passed here becomes its own person, and only
+ * the first one absorbs the preceding anonymous session.
  */
 export function identifyUser(email: string, props?: { company?: string }): void {
   if (!enabled) return;
@@ -48,6 +53,10 @@ export function identifyUser(email: string, props?: { company?: string }): void 
   const person: Record<string, string> = { email: distinctId };
   const company = props?.company?.trim();
   if (company) person.company = company;
+
+  const identity = JSON.stringify(person);
+  if (identity === lastIdentity) return;
+  lastIdentity = identity;
 
   posthog.identify(distinctId, person);
 }
