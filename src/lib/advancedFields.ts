@@ -28,6 +28,17 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       flavor: "both",
     },
     {
+      path: "global.imagePullPolicy",
+      label: "Global image pull policy",
+      type: "select",
+      options: [
+        { value: "IfNotPresent", label: "IfNotPresent" },
+        { value: "Always", label: "Always" },
+        { value: "Never", label: "Never" },
+      ],
+      flavor: "enterprise",
+    },
+    {
       path: "global.enterpriseOfflineAccess",
       label: "Enterprise offline access",
       type: "boolean",
@@ -96,9 +107,9 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       type: "boolean",
       flavor: "enterprise",
     },
-    // --- GitHub integration + Insights metrics (Enterprise chart >= 2.336 / app 2.13) ---
+    // --- GitHub integration + Insights metrics (Enterprise chart >= 2.338 / app 2.15) ---
     {
-      path: "testkube-cloud-api.api.features.gitIntegration",
+      path: "global.features.gitIntegration",
       label: "Advanced GitHub integration",
       type: "boolean",
       flavor: "enterprise",
@@ -109,8 +120,7 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       type: "text",
       placeholder: "github-webhook-secret",
       flavor: "enterprise",
-      when: (c) =>
-        c.advanced["testkube-cloud-api.api.features.gitIntegration"] === true,
+      when: (c) => c.advanced["global.features.gitIntegration"] === true,
     },
     {
       path: "testkube-cloud-api.api.github.webhookSecretKey",
@@ -118,8 +128,7 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       type: "text",
       placeholder: "webhook-secret",
       flavor: "enterprise",
-      when: (c) =>
-        c.advanced["testkube-cloud-api.api.features.gitIntegration"] === true,
+      when: (c) => c.advanced["global.features.gitIntegration"] === true,
     },
     {
       path: "testkube-cloud-api.api.features.workflowCustomLabelMetricsEnabled",
@@ -138,12 +147,42 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
           "testkube-cloud-api.api.features.workflowCustomLabelMetricsEnabled"
         ] === true,
     },
+    {
+      path: "testkube-cloud-api.api.features.workflowStepMetricsEnabled",
+      label: "Per-step workflow metrics",
+      type: "boolean",
+      flavor: "enterprise",
+    },
     // --- Test Authoring runtime (Enterprise chart >= 2.336 / app 2.13) ---
     {
       path: "global.testAuthoring.enabled",
       label: "Test Authoring runtime",
       type: "boolean",
       flavor: "enterprise",
+    },
+    {
+      path: "global.testAuthoring.runspace.prewarm.enabled",
+      label: "Prewarm authoring runspaces",
+      type: "boolean",
+      flavor: "enterprise",
+      when: (c) => c.advanced["global.testAuthoring.enabled"] === true,
+    },
+    {
+      path: "global.testAuthoring.runspace.prewarm.replicas",
+      label: "Prewarm runspace replicas",
+      type: "number",
+      placeholder: "2",
+      flavor: "enterprise",
+      when: (c) =>
+        c.advanced["global.testAuthoring.enabled"] === true &&
+        c.advanced["global.testAuthoring.runspace.prewarm.enabled"] === true,
+    },
+    {
+      path: "global.testAuthoring.litellm.networkPolicy.enabled",
+      label: "LiteLLM egress NetworkPolicy",
+      type: "boolean",
+      flavor: "enterprise",
+      when: (c) => c.advanced["global.testAuthoring.enabled"] === true,
     },
     // --- Control Plane API autoscaling / shutdown (Enterprise chart >= 2.335 / app 2.12) ---
     {
@@ -195,7 +234,7 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       path: "testkube-cloud-api.lifecycle.preStop.sleepSeconds",
       label: "API preStop sleep (s)",
       type: "number",
-      placeholder: "0",
+      placeholder: "10",
       flavor: "enterprise",
     },
     {
@@ -324,6 +363,20 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       flavor: "enterprise",
       when: (c) => c.core.ai,
     },
+    {
+      path: "global.features.aiGovernance",
+      label: "AI Governance",
+      type: "boolean",
+      flavor: "enterprise",
+      when: (c) => c.core.ai,
+    },
+    {
+      path: "testkube-cloud-api.ai.blockPrivateModelUrls",
+      label: "Block private model URLs",
+      type: "boolean",
+      flavor: "enterprise",
+      when: (c) => c.core.ai,
+    },
   ],
   database: [
     {
@@ -385,6 +438,12 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       type: "boolean",
       flavor: "enterprise",
     },
+    {
+      path: "convert.enabled",
+      label: "Mongo → Postgres conversion job",
+      type: "boolean",
+      flavor: "oss",
+    },
   ],
   artifacts: [
     {
@@ -398,6 +457,20 @@ const CATALOG: Record<string, AdvancedFieldDef[]> = {
       label: "Artifact scraper enabled",
       type: "boolean",
       flavor: "oss",
+    },
+    {
+      path: "testkube-api.storage.cacheExpiration",
+      label: "Step-cache expiration (days)",
+      type: "number",
+      placeholder: "1",
+      flavor: "oss",
+    },
+    {
+      path: "testkube-cloud-api.api.storage.cleanup.cacheRetentionDays",
+      label: "Step-cache retention (days)",
+      type: "number",
+      placeholder: "3",
+      flavor: "enterprise",
     },
     {
       path: "global.storage.secure",
